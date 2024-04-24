@@ -1,0 +1,22 @@
+{
+  "name": "mappifysql",
+  "version": "1.0.0",
+  "description": "MySequel is a lightweight, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. ",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": [
+    "MySQL",
+    "ORM",
+    "MySQL",
+    "ORM"
+  ],
+  "author": "Walid Adebayo",
+  "license": "ISC",
+  "dependencies": {
+    "mysql2": "^3.9.7"
+  }
+}
