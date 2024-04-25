@@ -27,21 +27,43 @@ npm install mappifysql
 Here's a quick example to create a connection to a MySQL database using MappifySQL:
 
 ```javascript
-
 const { Database } = require('mappifysql');
 
-// Call the createConnection method to establish a single connection to the database
+const connection = new Database(database, user, password, host, port);
+
+```
+
+```javascript
+//Call the createConnection method to establish a single connection to the database
+
 connection.createConnection();
 
+var query =  connection.query;
+
+module.exports = {
+    connection,
+    query
+}
+```
+
 <div align="center">
----
-**OR**
----
+<img src="https://i.ibb.co/svCRxdZ/createconnection.png" alt="createconnection" border="0">
 </div>
 
+---
+
+<div align="center">
+<b>OR</b>
+</div>
+
+---
+
+```javascript
 // Call the createPool method to establish a pool of connections to the database. 
 // This is useful for managing multiple concurrent database queries, improving performance.
+
 connection.createPool();
+
 var query =  connection.query;
 
 module.exports = {
@@ -54,5 +76,12 @@ module.exports = {
 <div align="center">
 <img src="https://i.ibb.co/pJ5bbFW/createpool.png" alt="createpool" border="0">
 </div>
+
+### Parameters
+- **database**: The name of the database you want to connect
+- **user**: The username of the database
+- **password**: The password of the database
+- **host**: The host of the database
+- **port**: The port of the database. This is optional and defaults to 3306.
 
 ## more examples and documentation coming soon...
