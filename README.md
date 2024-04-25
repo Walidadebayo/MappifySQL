@@ -30,18 +30,18 @@ Here's a quick example to create a connection to a MySQL database using MappifyS
 
 const { Database } = require('mappifysql');
 
-// Initialize the database connection
-const connection =  new Database(database, user, password, host);
-
 // Call the createConnection method to establish a single connection to the database
 connection.createConnection();
 
-                                    **OR**
+<div align="center">
+---
+**OR**
+---
+</div>
 
 // Call the createPool method to establish a pool of connections to the database. 
 // This is useful for managing multiple concurrent database queries, improving performance.
 connection.createPool();
-
 var query =  connection.query;
 
 module.exports = {
@@ -50,5 +50,9 @@ module.exports = {
 }
 
 ```
+
+<div align="center">
+<img src="https://i.ibb.co/pJ5bbFW/createpool.png" alt="createpool" border="0">
+</div>
 
 ## more examples and documentation coming soon...
