@@ -145,7 +145,7 @@ module.exports = Users;
 
 ```
 
-**Note**: By default, the Model class assumes that the table name is the plural form of the class name (e.g., Users class maps to the users table). If your table name is different, you can specify it by passing the table name as an argument to the super constructor.
+**Note**: By default, the Model class uses the table name derived from the class name and assumes that the table name in the database is the plural form of the class name. If your table name is different, you can override the tableName property in your model class.
 
 ```javascript
 const { Model } = require('mappifysql');
@@ -219,14 +219,14 @@ This file contains a base model class with methods for interacting with a databa
 
 ## Methods
 
-### `create()`
+### `save()`
 
 This method inserts a new record into the database. It uses the properties of the instance to determine the column names and values.
 
 Example:
 ```javascript
 let user = new User({name: 'John', email: 'john@example.com'});
-await user.create();
+await user.save();
 ```
 
 ### `update()`
@@ -248,6 +248,15 @@ Example:
 ```javascript
 let user = await User.findById(1);
 await user.delete();
+```
+
+### `fetch()`
+
+This method fetches all the records associated with the instance from the database.
+
+Example:
+```javascript
+let users = await User.fetch();
 ```
 
 ### `findOne()`
