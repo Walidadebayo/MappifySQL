@@ -743,6 +743,7 @@ Product.findElectronics().then((products) => {
 });
 ```
 
+
 ### Using TypeScript
 
 #### Connecting to a Database
