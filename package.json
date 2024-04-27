@@ -1,6 +1,6 @@
 {
   "name": "mappifysql",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "MappifySQL is a lightweight, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. It provides an intuitive, promise-based API for interacting with your MySQL database using JavaScript or TypeScript.",
   "repository": {
     "type": "git",
@@ -29,7 +29,11 @@
     "Object-Relational Mapping",
     "Node.js",
     "JavaScript",
-    "TypeScript"
+    "TypeScript",
+    "Database",
+    "SQL",
+    "MappifySQL",
+    "Mappify"
   ],
   "author": "Walid Adebayo",
   "license": "ISC",
