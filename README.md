@@ -108,9 +108,9 @@ Here's an example of how to define a model class:
 create a new file (e.g., Users.js) and add the following code:
 
 ```javascript
-const { Model } = require('mappifysql');
+const { MappifyModel } = require('mappifysql');
 
-class User extends Model {
+class User extends MappifyModel {
 
 }
 
@@ -121,9 +121,9 @@ module.exports = User;
 **Note**: By default, the Model class uses the table name derived from the class name and assumes that the table name in the database is the plural form of the class name. If your table name is different, you can override the tableName property in your model class.
 
 ```javascript
-const { Model } = require('mappifysql');
+const { MappifyModel } = require('mappifysql');
 
-class User extends Model {
+class User extends MappifyModel {
     static get tableName() {
         return 'my_user_table_name';
     }
@@ -703,9 +703,9 @@ You can create a custom function for a model class to perform a database operati
 
 Example:
 ```javascript
-const { Model } = require('mappifysql');
+const { MappifyModel } = require('mappifysql');
 
-class Product extends Model {
+class Product extends MappifyModel {
     static async findElectronics() {
         try {
             let sql = `SELECT * FROM ${this.tableName} WHERE category = ?`;
@@ -783,14 +783,14 @@ MappifySQL can be used with TypeScript for type-safe database interactions. You 
 
 Example:
 ```typescript
-import { Model } from 'mappifysql';
+import { MappifyModel } from 'mappifysql';
 
 interface ProductData {
     name: string;
     price: number;
 }
 
-class Product extends Model {
+class Product extends MappifyModel {
     id: number;
     name: string;
     price: number;
@@ -913,16 +913,16 @@ let performTransaction = async () => {
 MappifySQL allows you to define relationships between your tables, making it easier to fetch related data.
 
 ```javascript
-const { Model } = require('mappifysql');
+const { MappifyModel } = require('mappifysql');
 
-class Users extends Model {
+class Users extends MappifyModel {
     constructor() {
         super('users');
         this.hasMany('addresses', 'user_id');
     }
 }
 
-class Addresses extends Model {
+class Addresses extends MappifyModel {
     constructor() {
         super('addresses');
         this.belongsTo('users', 'user_id');
