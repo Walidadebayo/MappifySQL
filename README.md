@@ -1,12 +1,18 @@
-# MappifySQL: A MySQL ORM for Node.js and TypeScript
-
-MappifySQL is a lightweight, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. It provides an intuitive, promise-based API for interacting with your MySQL database using JavaScript or TypeScript.
+<div align="center">
+<img src="https://i.ibb.co/vxcbV42/mappifysql.jpg" alt="mappifysql" style="height: 300px; width: 300px; border-radius: 100%; object-fit: cover;">
+</div>
 
 ---
+
 <a href="https://www.npmjs.com/package/mappifysql"><img src="https://img.shields.io/npm/v/mappifysql.svg" alt="Version"></a>
 <a href="https://www.npmjs.com/package/mappifysql"><img src="https://img.shields.io/npm/dt/mappifysql.svg" alt="Downloads"></a>
 <a href="https://www.npmjs.com/package/mappifysql"><img src="https://img.shields.io/npm/l/mappifysql.svg" alt="License"></a>
 <a href="https://www.npmjs.com/package/mappifysql"><img src="https://img.shields.io/bundlephobia/min/mappifysql.svg" alt="Size"></a>
+
+# MappifySQL: A MySQL ORM for Node.js and TypeScript
+
+MappifySQL is a lightweight, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. It provides an intuitive, promise-based API for interacting with your MySQL database using JavaScript or TypeScript.
+
 
 ## Features
 
