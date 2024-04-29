@@ -1,3 +1,9 @@
+/**
+ * A module that provides a database connection and a model class for interacting with the database.
+ * @example const mappifysql = require('mappifysql');
+ * @example const { Database, MappifyModel } = require('mappifysql');
+ * @module mappifysql
+ */
 declare module 'mappifysql' {
 
     /**
