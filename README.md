@@ -1,18 +1,25 @@
-# MappifySQL: A MySQL ORM for Node.js
+# MappifySQL: A MySQL ORM for Node.js and TypeScript
 
 MappifySQL is a lightweight, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. It provides an intuitive, promise-based API for interacting with your MySQL database using JavaScript or TypeScript.
+
+---
+<a href="https://www.npmjs.com/package/mappifysql"><img src="https://img.shields.io/npm/v/mappifysql.svg" alt="Version"></a>
+<a href="https://www.npmjs.com/package/mappifysql"><img src="https://img.shields.io/npm/dt/mappifysql.svg" alt="Downloads"></a>
+<a href="https://www.npmjs.com/package/mappifysql"><img src="https://img.shields.io/npm/l/mappifysql.svg" alt="License"></a>
+<a href="https://www.npmjs.com/package/mappifysql"><img src="https://img.shields.io/bundlephobia/min/mappifysql.svg" alt="Size"></a>
 
 ## Features
 
 - **Object-Relational Mapping**: Map your database tables to JavaScript or TypeScript objects for easier and more intuitive data manipulation.
 - **CRUD Operations**: Easily perform Create, Read, Update, and Delete operations on your database.
-<!-- - **Transactions**: Safely execute multiple database operations at once with transaction support. -->
-<!-- - **Relationships**: Define relationships between your tables to easily fetch related data. -->
+- **Transactions**: Safely execute multiple database operations at once with transaction support.
+- **Relationships**: Define relationships between your tables to easily fetch related data.
 - **Model Class**: Define a model class for each table in your database to encapsulate database operations.
 - **Environment Variables**: Use environment variables to store database connection details securely.
 - **TypeScript Support**: Use MappifySQL with TypeScript for type-safe database interactions.
-- **Custom Queries**: Execute custom SQL queries using the query method.
 - **SQL Injection Protection**: Protect your application from SQL injection attacks with parameterized queries.
+- **Custom Queries**: Execute custom SQL queries using the query method.
+- **Custom Functions**: Create custom functions in your model classes to encapsulate complex queries or operations.
 - **Pagination**: Implement pagination for large datasets with the limit and offset options.
 
 
@@ -29,6 +36,34 @@ npm install mappifysql
 ```
 
 ## Getting Started
+
+### Importing the Library
+
+#### import and use the library in your JavaScript or TypeScript file:
+
+```javascript
+const mappifysql = require('mappifysql');
+
+const Database = mappifysql.Database;
+const MappifyModel = mappifysql.MappifyModel;
+```
+
+```typescript
+import mappifysql from 'mappifysql';
+
+const Database = mappifysql.Database;
+const MappifyModel = mappifysql.MappifyModel;
+```
+
+#### import the classes directly in your JavaScript or TypeScript file:
+
+```javascript
+const { Database, MappifyModel } = require('mappifysql');
+```
+
+```typescript
+import { Database, MappifyModel } from 'mappifysql';
+```
 
 Here's a quick example to create a connection to a MySQL database using MappifySQL:
 
@@ -68,6 +103,25 @@ var query = db.getQuery();
 module.exports = { connection, query };
 
 ```
+```typescript
+
+import { Database } from 'mappifysql';
+
+const db = new Database();
+
+db.createConnection().then(() => {
+    console.log('Database connected successfully');
+}).catch((err) => {
+    console.error(err);
+});
+
+var connection = db.connection;
+var query = db.getQuery();
+
+export { connection, query };
+
+```
+
 
 <div align="center">
 <img src="https://i.ibb.co/BCvQSYL/create-Single-Connection.png" alt="createSingleConnection" border="0">
@@ -95,6 +149,26 @@ module.exports = { connection, query };
 
 ```
 
+```typescript
+
+import { Database } from 'mappifysql';
+
+const db = new Database();
+
+db.createPool().then(() => {
+    console.log('Database connected successfully');
+}).catch((err) => {
+    console.error(err);
+});
+
+var connection = db.connection;
+var query = db.getQuery();
+
+export { connection, query };
+
+```
+
+
 <div align="center">
 <img src="https://i.ibb.co/s3cnW5p/create-Pool-Connection.png" alt="createPoolConnection" border="0">
 </div>
@@ -118,6 +192,70 @@ module.exports = User;
 
 ```
 
+```typescript
+import { MappifyModel } from 'mappifysql';
+
+interface UserAttributes {
+    name: string;
+    email: string;
+    // add more properties here...
+}
+
+class User extends MappifyModel {
+    id: number;
+    name: string;
+    email: string;
+    // add more properties here...
+
+    constructor(data: UserAttributes) {
+        super();
+        this.name = data.name;
+        this.email = data.email;
+        // set more properties here...
+    }
+
+    setProperties() {
+        super.setProperties();
+    }
+
+
+    async save() {
+        await super.save();
+    }
+
+    async update() {
+        await super.update();
+    }
+
+    async delete() {
+        await super.delete();
+    }
+
+    static async findAll() {
+        let results = await MappifyModel.findAll();
+        return results.map(result => new User(result));
+    }
+
+    static async findById(id: number){
+        let result = await MappifyModel.findById(id);
+        return new User(result);
+    }
+
+    static async findOne(options: { where: object }) {
+        let result = await MappifyModel.findOne(options);
+        return new User(result);
+    }
+    
+    static async findOrCreate(options: object, defaults: object) {
+        let { record, created } = await MappifyModel.findOrCreate(options, defaults);
+        return { record: new User(record), created };
+    }
+}
+
+export default User;
+
+```
+
 **Note**: By default, the Model class uses the table name derived from the class name and assumes that the table name in the database is the plural form of the class name. If your table name is different, you can override the tableName property in your model class.
 
 ```javascript
@@ -132,6 +270,20 @@ class User extends MappifyModel {
 module.exports = User;
 
 ```
+
+```typescript
+import { MappifyModel } from 'mappifysql';
+
+class User extends MappifyModel {
+    static get tableName() {
+        return 'my_user_table_name';
+    }
+}
+
+export default User;
+
+```
+
 
 ### Performing CRUD Operations
 
@@ -186,6 +338,12 @@ let deleteData = async () => {
     });
 };
 ```
+
+```typescript
+import User from 'path/to/user.ts'
+```
+
+
 # Model Class
 
 This file contains a base model class with methods for interacting with a database. Each method corresponds to a common database operation.
@@ -741,149 +899,61 @@ Product.findElectronics().then((products) => {
 }).catch((err) => {
     console.error(err);
 });
+
 ```
-
-
-### Using TypeScript
-
-#### Connecting to a Database
-
-To connect to a MySQL database using MappifySQL with TypeScript, you need to create a .env file in the root directory of your project and add the following environment variables:
-
-```bash
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=password
-DB_DATABASE=mydatabase
-DB_PORT=3306 ## (optional) default is 3306
-```
-
-Then, create a new TypeScript file (e.g., connection.ts) and add the following code:
 
 ```typescript
-import { Database } from 'mappifysql';
+const { MappifyModel } = require('mappifysql');
 
-const db = new Database();
-
-db.createConnection().then(() => {
-    console.log('Database connected successfully');
-}).catch((err) => {
-    console.error(err);
-});
-
-var connection = db.connection;
-var query = db.getQuery();
-
-export { connection, query };
-```
-
-#### Using the Model Class
-
-MappifySQL can be used with TypeScript for type-safe database interactions. You can define interfaces for your models to ensure that the properties of your objects match the columns in your database tables.
-
-Example:
-```typescript
-import { MappifyModel } from 'mappifysql';
-
-interface ProductData {
+interface ProductAttributes {
     name: string;
     price: number;
+    category: string;
 }
 
 class Product extends MappifyModel {
     id: number;
     name: string;
     price: number;
+    category: string;
 
-    constructor(data: ProductData) {
+    constructor(data: ProductAttributes) {
         super();
         this.name = data.name;
         this.price = data.price;
-    }
-    async save() {
-        await super.save();
+        this.category = data.category;
     }
 
-    async update() {
-        await super.update();
-    }
+    // other methods here...
 
-    async delete() {
-        await super.delete();
-    }
-
-    static async findAll() {
-        let results = await super.findAll();
-        return results.map(result => new Product(result));
-    }
-
-    static async findById(id: number){
-        let result = await super.findById(id);
-        return new Product(result);
-    }
-
-    static async findOne(options: { where: object }) {
-        let result = await super.findOne(options);
-        return new Product(result);
-    }
-    
-    static async findOrCreate(options: object, defaults: object) {
-        let { record, created } = await super.findOrCreate(options, defaults);
-        return { record: new Product(record), created };
-    }
-
-    static async findByIdAndDelete(id: number) {
-        await super.findByIdAndDelete(id);
-    }
-
-    static async findOneAndDelete(options: { where: object }) {
-        await super.findOneAndDelete(options);
-    }
-
-    static async findOneAndUpdate(options: { where: object }, data: object) {
-        await super.findOneAndUpdate(options, data);
-    }
-
-    static async findByIdAndUpdate(id: number, data: object) {
-        await super.findByIdAndUpdate(id, data);
-    }
-
-    static async customQuery() {
-        let sql = `SELECT * FROM ${super.tableName} WHERE category = ?`;
-        let results = await super.query(sql, ['electronics']);
-        return results.map(result => new Product(result));
-    }
-
+    // create a custom function using functions in the model class
     static async findElectronics() {
-        let results = await super.findAll(attributes: ['id', 'name', 'price'], and: [{ category: 'electronics' }, { price: { between: [500, 1000] } }]);
-        return results.map(result => new Product(result));
+        try {
+            let results = await MappifyModel.findAll(attributes: ['id', 'name', 'price'], and: [{ category: 'electronics' }, { price: { between: [500, 1000] } }]);
+            return results;
+        } catch (err) {
+            throw err;
+        }
     }
 }
 
 export default Product;
-```
 
+```
+Usage:
 ```typescript
 import Product from 'path/to/product.ts';
 
-let product = new Product({ name: 'Samsung S24', price: 1000 });
-
-product.save().then(() => {
-    console.log('New product inserted successfully');
+Product.findElectronics().then((products) => {
+    console.log('Electronics products:', products);
 }).catch((err) => {
     console.error(err);
 });
 
-Product.findAll().then((products) => {
-    console.log('Fetched products:', products);
-}).catch((err) => {
-    console.error(err);
-});
 ```
 
 
-
-<!-- ### Transactions
+### MappifySQL Transactions
 
 MappifySQL supports transactions, allowing you to execute multiple database operations as a single unit of work. This ensures that all operations are completed successfully or none of them are.
 
@@ -893,8 +963,8 @@ const { connection, query } = require('./connection');
 let performTransaction = async () => {
     try {
         await connection.beginTransaction();
-        await query('INSERT INTO users SET ?', { name: 'John Doe'});
-        await query('INSERT INTO addresses SET ?', { user_id: 1, address: '123 Main St'});
+        var user = await query('INSERT INTO users SET ?', { name: 'John Doe'});
+        await query('INSERT INTO addresses SET ?', { user_id: user.insertId, address: '123 Main St' });
         await connection.commit();
         console.log('Transaction completed successfully');
         query('SELECT * FROM users').then((results) => {
@@ -905,48 +975,464 @@ let performTransaction = async () => {
         console.error(err);
     }
 };
+
+//using transaction with the model class
+
+let performTransaction = async () => {
+    try {
+        await connection.beginTransaction();
+        let user = new User({ name: 'John Doe' });
+        await user.save();
+        let address = new Address({ user_id: user.id, address: '123 Main St' });
+        await address.save();
+        await connection.commit();
+        console.log('Transaction completed successfully');
+        User.findAll().then((results) => {
+            console.log('Fetched records:', results);
+        });
+    } catch (err) {
+        await connection.rollback();
+        console.error(err);
+    }
+};
     
 ```
 
-### Relationships
 
+### Relationships
 MappifySQL allows you to define relationships between your tables, making it easier to fetch related data.
+
+
+This table provides a quick reference for the methods available in defining relationships between models.
+
+| Method | Description | Parameters | Example |
+| --- | --- | --- | --- |
+| `associations` | Defines the associations that a model has with other models. This method is meant to be overridden in subclasses. | None | `associations() { this.belongsTo(User, { as: 'user', key: 'id', foreignKey: 'user_id' }); }` |
+| `hasOne` | Defines a one-to-one relationship between two models. | `relatedModel`, `options` | `this.hasOne(ShippingAddress, { as: 'shippingAddress', foreignKey: 'order_id' });` |
+| `belongsTo` | Defines a one-to-one relationship where the model belongs to another model. | `relatedModel`, `options` | `this.belongsTo(Order, { as: 'order', key: 'id', foreignKey: 'order_id' });` |
+| `hasMany` | Defines a one-to-many relationship where the model has many instances of another model. | `relatedModel`, `options` | `this.hasMany(User, { as: 'user', foreignKey: 'post_id' });` |
+| `belongsToMany` | Defines a many-to-many relationship between two models. | `relatedModel`, `options` | `this.belongsToMany(Course, { as: 'courses', through: Enrollment, key: 'id', foreignKey: 'student_id', otherKey: 'course_id' });` |
+| `populate` | Fetches the related data for a given relation. | `relation`, `options` (optional) | `await post.populate('user');` |
+
+
+
+This table provides a quick reference for the options available in defining relationships between models.
+
+| Method        | Key           | Description  |
+| ------------- |:-------------:| -----:|
+| hasOne        | as            | The alias for the association. |
+|               | foreignKey    | The foreign key in this model. |
+| belongsTo     | as            | The alias for the association. |
+|               | key           | The primary key in the related model. |
+|               | foreignKey    | The foreign key in this model. |
+| hasMany       | as            | The alias for the association. |
+|               | foreignKey    | The foreign key in the related model. |
+| belongsToMany | as            | The alias for the association. |
+|               | through       | The "join" table model that connects the two models. |
+|               | key           | The primary key in the related model. |
+|               | foreignKey    | The foreign key in through model for this model. |
+|               | otherKey      | The foreign key in through model for the related model. |
+| populate      | attributes    | The columns to include in the result. |
+|               | exclude       | The columns to exclude from the result. |
+
+Please note that `attributes` and `exclude` keys in the `populate` method are optional.
+
+#### Defining Relationships
+
+#### One-to-One Relationship
+
+In a one-to-one relationship, each record in one table is associated with exactly one record in another table. For example, each order has exactly one shipping address, and each shipping address belongs to exactly one order.
+
 
 ```javascript
 const { MappifyModel } = require('mappifysql');
+const ShippingAddress = require('path/to/ShippingAddress');
 
-class Users extends MappifyModel {
-    constructor() {
-        super('users');
-        this.hasMany('addresses', 'user_id');
+class Order extends MappifyModel {
+    associations() {
+        this.hasOne(ShippingAddress, {
+            as: 'shippingAddress',
+            foreignKey: 'order_id'
+        });
     }
 }
 
-class Addresses extends MappifyModel {
-    constructor() {
-        super('addresses');
-        this.belongsTo('users', 'user_id');
-    }
-}
-
-module.exports = { Users, Addresses };
+module.exports = Order;
 
 ```
+
+Usage:
+```javascript
+const Order = require('path/to/Order');
+
+Order.findByOne({ where: { id: 1 }}).then((order) => {
+    order.populate('shippingAddress', {exclude: ['created_at', 'updated_at']}).then((order) => {
+        console.log('Order with shipping address:', order);
+    });
+}).catch((err) => {
+    console.error(err);
+});
+
+```
+
+```typescript
+import { MappifyModel } from 'mappifysql';
+import Order from 'path/to/Order';
+
+interface ShippingAddressAttributes {
+    id: number;
+    address: string;
+    city: string;
+    state: string;
+}
+
+class ShippingAddress extends MappifyModel {
+    id: number;
+    address: string;
+    city: string;
+
+    constructor(data: ShippingAddressAttributes) {
+        super();
+        this.id = data.id;
+        this.address = data.address;
+        this.city = data.city;
+    }
+    
+    // other methods here...
+
+    super.associations() {
+        super.belongsTo(Order, {
+            as: 'order',
+            key: 'id'
+            foreignKey: 'order_id'
+        });
+    }
+}
+
+export default ShippingAddress;
+```
+
+Usage:
+```typescript
+import ShippingAddress from 'path/to/ShippingAddress';
+
+ShippingAddress.findByOne({ where: { id: 1 }}).then((shippingAddress) => {
+    shippingAddress.populate('order', {attributes: ['id', 'total']}).then((shippingAddress) => {
+        console.log('Shipping address with order:', shippingAddress);
+    });
+}).catch((err) => {
+    console.error(err);
+});
+
+```
+
+#### One-to-Many Relationship
+
+In a one-to-many relationship, each record in one table is associated with one or more records in another table. For example, each user can have multiple orders, but each order belongs to exactly one user.
 
 ```javascript
-const { Users, Addresses } = require('path/to/models');
+const { MappifyModel } = require('mappifysql');
+const Order = require('path/to/Order');
 
-// Example: Fetch a user and their addresses
+class User extends MappifyModel {
+    associations() {
+        this.hasMany(Order, {
+            as: 'orders',
+            foreignKey: 'user_id'
+        });
+    }
+}
 
-let fetchUserWithAddresses = async () => {
-    Users.findOne(1, { include: 'addresses' }).then((user) => {
-        console.log('User:', user);
-    }).catch((err) => {
-        console.error(err);
-    });
-};
+module.exports = User;
 
 ```
- -->
 
-## more examples and documentation coming soon...
+Usage:
+```javascript
+const User = require('path/to/User');
+
+let fetchUserOrders = async () => {
+    var user = await User.findOne({ where: { id: 1 } });
+    await user.populate('orders', { exclude: ['created_at', 'updated_at'] });
+    console.log('User with orders:', user);
+};
+
+fetchUserOrders();
+
+```
+
+```typescript
+
+import { MappifyModel } from 'mappifysql';
+import Order from 'path/to/Order';
+
+interface OrderAttributes {
+    id: number;
+    total: number;
+}
+
+
+class Order extends MappifyModel {
+    id: number;
+    total: number;
+
+    constructor(data: OrderAttributes) {
+        super();
+        this.id = data.id;
+        this.total = data.total;
+    }
+
+    // other methods here...
+
+    super.associations() {
+        super.belongsTo(User, {
+            as: 'user',
+            key: 'id'
+            foreignKey: 'user_id'
+        });
+    }
+}
+
+export default User;
+
+```
+
+Usage:
+```typescript
+import Order from 'path/to/Order';
+
+let fetchOrderUser = async () => {
+    var order = await Order.findOne({ where: { id: 1 } });
+    await order.populate('user', {attributes: ['id', 'name']});
+    console.log('Order with user:', order);
+};
+
+fetchOrderUser();
+
+```
+
+#### Many-to-Many Relationship
+
+In a many-to-many relationship, each record in one table is associated with one or more records in another table, and vice versa. For example, each product can belong to multiple categories, and each category can have multiple products.
+
+```javascript
+const { MappifyModel } = require('mappifysql');
+const Category = require('path/to/Category');
+const ProductCategory = require('path/to/ProductCategory');
+
+class Product extends MappifyModel {
+    associations() {
+        this.belongsToMany(Category, {
+            as: 'categories',
+            through: ProductCategory,
+            key: 'id',
+            foreignKey: 'product_id',
+            otherKey: 'category_id'
+        });
+    }
+}
+
+module.exports = Product;
+
+```
+
+Usage:
+```javascript
+const Product = require('path/to/Product');
+
+Product.findOne({ where: { id: 1 }}).then((product) => {
+    product.populate('categories', { exclude: ['created_at', 'updated_at'] }).then((product) => {
+        console.log('Product with categories:', product);
+    });
+}).catch((err) => {
+    console.error(err);
+});
+
+```
+
+```typescript
+import { MappifyModel } from 'mappifysql';
+import Product from 'path/to/Product';
+import ProductCategory from 'path/to/ProductCategory';
+
+interface CategoryAttributes {
+    id: number;
+    name: string;
+}
+
+class Category extends MappifyModel {
+    id: number;
+    name: string;
+
+    constructor(data: CategoryAttributes) {
+        super();
+        this.id = data.id;
+        this.name = data.name;
+    }
+
+    // other methods here...
+
+    super.associations() {
+        super.belongsToMany(Product, {
+            as: 'products',
+            through: ProductCategory,
+            key: 'id',
+            foreignKey: 'category_id',
+            otherKey: 'product_id'
+        });
+    }
+}
+
+export default Category;
+
+```
+
+Usage:
+```typescript
+import Category from 'path/to/Category';
+
+Category.findOne({ where: { id: 1 }}).then((category) => {
+    category.populate('products', {attributes: ['id', 'name', 'price']}).then((category) => {
+        console.log('Category with products:', category);
+    });
+}).catch((err) => {
+    console.error(err);
+});
+
+```
+<span style="color:red;"><b>Note</b></span>: The model classes can contain many relationships, and you can define as many relationships as needed for your application. Also, if a model has multiple relationships, you can populate them individually for each relationship.
+
+Example:
+```javascript
+const { MappifyModel } = require('mappifysql');
+const Student = require('path/to/studentmodel');
+ const Course = require('path/to/coursemodel');
+
+
+ class Enrollment extends MappifyModel {
+    associations() {
+        this.belongsTo(Student, {
+            as: 'student',
+            key: 'id',
+            foreignKey: 'student_id'
+        });
+        this.belongsTo(Course, {
+            as: 'course',
+            key: 'id',
+            foreignKey: 'course_id'
+        });
+    }
+}
+
+module.exports = Enrollment;
+
+```
+
+Usage:
+```javascript
+const Enrollment = require('path/to/Enrollment');
+
+Enrollment.findOne({ where: { id: 1 }}).then((enrollment) => {
+    enrollment.populate('student', {attributes: ['id', 'name']}).then(() => {
+    }).then(() => {
+        enrollment.populate('course', {attributes: ['id', 'name']}).then(() => {
+            console.log('Enrollment with student and course:', enrollment);
+        });
+    });
+}).catch((err) => {
+    console.error(err);
+});
+
+```
+
+```typescript
+import { MappifyModel } from 'mappifysql';
+import Student from 'path/to/studentmodel';
+import Course from 'path/to/coursemodel';
+
+interface EnrollmentAttributes {
+    id: number;
+    student_id: number;
+    course_id: number;
+}
+
+class Enrollment extends MappifyModel {
+    id: number;
+    student_id: number;
+    course_id: number;
+
+    constructor(data: EnrollmentAttributes) {
+        super();
+        this.id = data.id;
+        this.student_id = data.student_id;
+        this.course_id = data.course_id;
+    }
+
+    // other methods here...
+
+    super.associations() {
+        super.belongsTo(Student, {
+            as: 'student',
+            key: 'id',
+            foreignKey: 'student_id'
+        });
+        super.belongsTo(Course, {
+            as: 'course',
+            key: 'id',
+            foreignKey: 'course_id'
+        });
+    }
+}
+
+export default Enrollment;
+
+```
+
+Usage:
+```typescript
+import Enrollment from 'path/to/Enrollment
+
+let enroll = async () => {
+    var enrollment = await Enrollment.findOne({ where: { id: 1 } });
+    await enrollment.populate('student', {attributes: ['id', 'name']});
+    await enrollment.populate('course', {attributes: ['id', 'name']});
+    console.log('Enrollment with student and course:', enrollment);
+};
+
+enroll();
+
+```
+
+##### Issues
+
+If you encounter any issues or have any questions, please feel free to open an issue on the GitHub repository. We are always happy to help and improve the library.
+
+<!-- ##### Contributing
+
+If you would like to contribute to the project, please feel free to fork the repository and submit a pull request. We welcome all contributions and appreciate your help in making the library better. -->
+
+##### License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+<!-- ##### Acknowledgments
+
+We would like to thank all the contributors to the project and the open-source community for their support and feedback. We appreciate your help in making the library better and more useful for developers. -->
+
+##### References
+
+<!-- - [MappifySQL Documentation]( -->
+
+- [MappifySQL GitHub Repository](https://github.com/Walidadebayo/MappifySQL.git)
+
+- [MappifySQL NPM Package](https://www.npmjs.com/package/mappifysql)
+
+<!-- - [MappifySQL Examples]( -->
+
+- [MappifySQL Issues]("https://github.com/Walidadebayo/MappifySQL/issues)
+
+- [MappifySQL License](https://github.com/Walidadebayo/mappifysql/blob/main/LICENSE)
+
+<!-- - [MappifySQL Contributors](https://github.com/Walidadebayo/mappifysql/graphs/contributors) -->
+
+<!-- - [MappifySQL Open Source Community]( -->
