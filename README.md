@@ -1429,7 +1429,7 @@ We would like to thank all the contributors to the project and the open-source c
 
 <!-- - [MappifySQL Examples]( -->
 
-- [MappifySQL Issues]("https://github.com/Walidadebayo/MappifySQL/issues)
+- [MappifySQL Issues](https://github.com/Walidadebayo/MappifySQL/issues)
 
 - [MappifySQL License](https://github.com/Walidadebayo/mappifysql/blob/main/LICENSE)
 
