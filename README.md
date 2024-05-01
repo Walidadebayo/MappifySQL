@@ -81,7 +81,7 @@ To connect to a MySQL database using MappifySQL, you need to create a .env file 
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=password
-DB_DATABASE=mydatabase
+DB_NAME=mydatabase
 DB_PORT=3306 ## (optional) default is 3306
 ```
 
