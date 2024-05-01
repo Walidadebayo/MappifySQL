@@ -1,5 +1,5 @@
 <div align="center">
-<img src="https://i.ibb.co/vxcbV42/mappifysql.jpg" alt="mappifysql" style="height: 300px; width: 300px; border-radius: 100%; object-fit: cover;">
+<img src="https://i.ibb.co/tmH8Kk4/mappifysql.jpg" alt="mappifysql" style="height: 300px; width: 300px; border-radius: 100%; object-fit: cover;">
 </div>
 
 ---
@@ -11,7 +11,7 @@
 
 # MappifySQL: A MySQL ORM for Node.js and TypeScript
 
-MappifySQL is a lightweizght, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. It provides an intuitive, promise-based API for interacting with your MySQL database using JavaScript or TypeScript.
+MappifySQL is a lightweight, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. It provides an intuitive, promise-based API for interacting with your MySQL database using JavaScript or TypeScript.
 
 
 ## Features
@@ -133,7 +133,7 @@ export { connection, query };
 
 
 <div align="center">
-<img src="https://i.ibb.co/BCvQSYL/create-Single-Connection.png" alt="createSingleConnection" border="0">
+<img src="https://i.ibb.co/NptYQGf/createsingleconnection.png" alt="createSingleConnection" border="0">
 </div>
 
 #### Create a pool of connections to the database
@@ -178,7 +178,7 @@ export { connection, query };
 ```
 
 <div align="center">
-<img src="https://i.ibb.co/s3cnW5p/create-Pool-Connection.png" alt="createPoolConnection" border="0">
+<img src="https://i.ibb.co/6r0npjy/createpoolconnection.png" alt="createPoolConnection" border="0">
 </div>
 
 
