@@ -1105,6 +1105,15 @@ Order.findByOne({ where: { id: 1 }}).then((order) => {
     console.error(err);
 });
 
+Order.findAll().then((orders) => {
+    orders.forEach(async (order) => {
+        await order.populate('shippingAddress', {exclude: ['created_at', 'updated_at']});
+        console.log('Order with shipping address:', order);
+    });
+}).catch((err) => {
+    console.error(err);
+});
+
 ```
 
 ** Using TypeScript **

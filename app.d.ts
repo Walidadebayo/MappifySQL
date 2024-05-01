@@ -181,7 +181,7 @@ declare module 'mappifysql' {
    * console.log(enrollment.course);
    * @returns {this} The instance of the model with the populated relation.
    */
-    populate(relation: string, options: object): this;
+    populate(relation: string, options?: object): any;
 
 
     /**
@@ -241,9 +241,9 @@ declare module 'mappifysql' {
      * @example var product = await Product.findOne({ where: { not: { name: 'Product 1' } } });
      * @example var product = await Product.findOne({ where: { and: [{ name: 'Product 1' }, { price: 100 }] } });
      * @example var product = await Product.findOne({ where: { or: [{ name: 'Product 1' }, { price: 100 }] } });
-     * @returns {Promise<Array|null>} An instance of an array or null if no record was found.
+     * @returns {Promise<Object|null>} An instance of an array or null if no record was found.
      */
-    static findOne(options: object): Promise<Array<MappifyModel>>;
+    static findOne(options: object): Promise<Object<MappifyModel>>;
 
 
     /**
@@ -251,9 +251,9 @@ declare module 'mappifysql' {
      * @param {number} id - The ID of the record to fetch.
      * @example var product = await Product.findById(1);
      * console.log(product);
-     * @returns {Promise<Array|null>} An instance of an array or null if no record was found.
+     * @returns {Promise<Object|null>} An instance of an array or null if no record was found.
      */
-    static findById(id: number): Promise<Array<MappifyModel>>;
+    static findById(id: number): Promise<Object<MappifyModel>>;
 
 
     /**
@@ -287,7 +287,7 @@ declare module 'mappifysql' {
    * @example var products = await Product.findAll({ group: 'category' });
    * @returns {Promise<Array<Model>>} An array of instances.
    */
-    static findAll(options: object): Promise<Array<MappifyModel>>;
+    static findAll(options?: object): Promise<Array<MappifyModel>>;
 
 
     /**
@@ -324,18 +324,18 @@ declare module 'mappifysql' {
     static findOneAndDelete(options: object): Promise<MappifyModel>;
 
 
-    /**
-     * This static method updates a record in the table based on the provided options.
-     * @param {object} options - The options for the query.
-     * @param {object} options.where - The WHERE clause for the query.
-     * @param {object} options.attributes - The columns to include in the result.
-     * @param {object} options.exclude - The columns to exclude from the result.
-     * @param {object} data - The new data for the record.
-     * @example await Product.findOneAndUpdate({ where: { id: 1 } }, { price: 200 });
-     * @returns {Promise<Model|null>} The updated instance or null if no record was found.
-     * @throws {Error} Throws an error if the where clause is not provided or if no record is found.
-     */
-    static findOneAndUpdate(options: object, data: object): Promise<MappifyModel>;
+/**
+ * This static method updates a record in the table based on the provided options.
+ * @param options The options for the query.
+ * @param options.where The WHERE clause for the query.
+ * @param options.attributes The columns to include in the result.
+ * @param options.exclude The columns to exclude from the result.
+ * @param data The new data for the record.
+ * @example await Product.findOneAndUpdate({ where: { id: 1 } }, { price: 200 });
+ * @returns The updated instance or null if no record was found.
+ * @throws Throws an error if the where clause is not provided or if no record is found.
+ */
+static findOneAndUpdate(options: { where?: object, attributes?: object, exclude?: object }, data: object): Promise<Model | null>;
 
 
     /**
@@ -343,10 +343,10 @@ declare module 'mappifysql' {
    * @param {number} id - The ID of the record to update.
    * @param {object} data - The new data for the record.
    * @example await Product.findByIdAndUpdate(1, { price: 200 });
-   * @returns {Promise<Model|null>} The updated instance or null if no record was found.
+   * @returns {Promise<MappifyModel|null>} The updated instance or null if no record was found.
    * @throws {Error} Throws an error if the ID is not provided or if no record is found.
    */
-    static findByIdAndUpdate(id: number, data: object): Promise<MappifyModel>;
+    static findByIdAndUpdate(id: number, data: object): Promise<MappifyModel | null>;
   }
 
 
