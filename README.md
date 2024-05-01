@@ -11,7 +11,7 @@
 
 # MappifySQL: A MySQL ORM for Node.js and TypeScript
 
-MappifySQL is a lightweight, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. It provides an intuitive, promise-based API for interacting with your MySQL database using JavaScript or TypeScript.
+MappifySQL is a lightweizght, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. It provides an intuitive, promise-based API for interacting with your MySQL database using JavaScript or TypeScript.
 
 
 ## Features
@@ -103,12 +103,15 @@ db.createConnection().then(() => {
     console.error(err);
 });
 
-var connection = db.connection;
+var connection = db.getConnection();
 var query = db.getQuery();
 
 module.exports = { connection, query };
 
 ```
+
+** Using TypeScript **
+
 ```typescript
 
 import { Database } from 'mappifysql';
@@ -121,7 +124,7 @@ db.createConnection().then(() => {
     console.error(err);
 });
 
-var connection = db.connection;
+var connection = db.getConnection();
 var query = db.getQuery();
 
 export { connection, query };
@@ -148,7 +151,7 @@ db.createPool().then(() => {
     console.error(err);
 });
 
-var connection = db.connection;
+var connection = db.getConnection();
 var query = db.getQuery();
 
 module.exports = { connection, query };
@@ -167,18 +170,61 @@ db.createPool().then(() => {
     console.error(err);
 });
 
-var connection = db.connection;
+var connection = db.getConnection();
 var query = db.getQuery();
 
 export { connection, query };
 
 ```
 
-
 <div align="center">
 <img src="https://i.ibb.co/s3cnW5p/create-Pool-Connection.png" alt="createPoolConnection" border="0">
 </div>
 
+
+Methods available in the connection object:
+
+
+| Method | Description | Parameters | Supported by |
+| --- | --- | --- | --- |
+| `beginTransaction` | Begins a transaction. | `callback?: (err: any) => void` | `createConnection` |
+| `commit` | Commits the current transaction. | `callback?: (err: any) => void` | `createConnection` |
+| `rollback` | Rolls back the current transaction. | `callback?: (err: any) => void` | `createConnection` |
+| `query` | Sends a SQL query to the database. | `sql: string`, `values?: any`, `callback?: (error: any, results: any, fields: any) => void` | `createConnection`, `createPool` |
+| `end` | Ends the connection. | `callback?: (err: any) => void` | `createConnection`, `createPool` |
+| `destroy` | Destroys the connection. | None | `createConnection` |
+| `pause` | Pauses the connection. | None | `createConnection` |
+| `resume` | Resumes the connection. | None | `createConnection` |
+| `escape` | Escapes a value for SQL. | `value: any` | `createConnection`, `createPool` |
+| `escapeId` | Escapes an identifier for SQL. | `value: any` | `createConnection`, `createPool` |
+| `format` | Formats a SQL query string. | `sql: string`, `values?: any` | `createConnection`, `createPool` |
+| `ping` | Pings the server. | `callback?: (err: any) => void` | `createConnection`, `createPool` |
+| `changeUser` | Changes the user for the current connection. | `options: any`, `callback?: (err: any) => void` | `createConnection` |
+
+Example:
+```javascript
+const { connection } = require('./connection');
+
+connection.query('SELECT * FROM users', (err, results, fields) => {
+    if (err) {
+        throw err;
+    }
+    console.log('Fetched records:', results);
+});
+```
+
+** Using TypeScript **
+
+```typescript
+import { connection } from './connection';
+
+connection.query('SELECT * FROM users', (err, results, fields) => {
+    if (err) {
+        throw err;
+    }
+    console.log('Fetched records:', results);
+});
+```
 
 ### Using the Model Class
 
@@ -198,64 +244,39 @@ module.exports = User;
 
 ```
 
+** Using TypeScript **
+
 ```typescript
 import { MappifyModel } from 'mappifysql';
 
 interface UserAttributes {
-    name: string;
+    first_name: string;
+    last_name: string;
     email: string;
-    // add more properties here...
+    password: string;
+    
+    //add more attributes here...
 }
 
 class User extends MappifyModel {
+
     id: number;
-    name: string;
+    first_name: string;
+    last_name: string;
     email: string;
-    // add more properties here...
+    password: string;
+
 
     constructor(data: UserAttributes) {
         super();
-        this.name = data.name;
+        this.first_name = data.first_name;
+        this.last_name = data.last_name;
         this.email = data.email;
-        // set more properties here...
-    }
+        this.password = data.password;
 
-    setProperties() {
-        super.setProperties();
+        // add more properties here...
     }
-
-
-    async save() {
-        await super.save();
-    }
-
-    async update() {
-        await super.update();
-    }
-
-    async delete() {
-        await super.delete();
-    }
-
-    static async findAll() {
-        let results = await MappifyModel.findAll();
-        return results.map(result => new User(result));
-    }
-
-    static async findById(id: number){
-        let result = await MappifyModel.findById(id);
-        return new User(result);
-    }
-
-    static async findOne(options: { where: object }) {
-        let result = await MappifyModel.findOne(options);
-        return new User(result);
-    }
-    
-    static async findOrCreate(options: object, defaults: object) {
-        let { record, created } = await MappifyModel.findOrCreate(options, defaults);
-        return { record: new User(record), created };
-    }
+   
 }
 
 export default User;
@@ -276,6 +297,8 @@ class User extends MappifyModel {
 module.exports = User;
 
 ```
+
+** Using TypeScript **
 
 ```typescript
 import { MappifyModel } from 'mappifysql';
@@ -344,6 +367,8 @@ let deleteData = async () => {
     });
 };
 ```
+
+** Import in TypeScript **
 
 ```typescript
 import User from 'path/to/user.ts'
@@ -840,8 +865,12 @@ let customQuery = async () => {
 // you can also use the connection object directly
 let customQuery = async () => {
     try {
-        let results = await connection.query('SELECT * FROM products WHERE name LIKE ?', ['%apple%']);
-        console.log('Fetched records:', results);
+        let results = await connection.query('SELECT * FROM products WHERE name LIKE ?', ['%apple%'], (err, results, fields) => {
+            if (err) {
+                throw err;
+            }
+            console.log('Fetched records:', results);
+        });
     } catch (err) {
         console.error(err);
     }
@@ -908,6 +937,8 @@ Product.findElectronics().then((products) => {
 
 ```
 
+** Using TypeScript **
+
 ```typescript
 const { MappifyModel } = require('mappifysql');
 
@@ -930,7 +961,6 @@ class Product extends MappifyModel {
         this.category = data.category;
     }
 
-    // other methods here...
 
     // create a custom function using functions in the model class
     static async findElectronics() {
@@ -963,21 +993,20 @@ Product.findElectronics().then((products) => {
 
 MappifySQL supports transactions, allowing you to execute multiple database operations as a single unit of work. This ensures that all operations are completed successfully or none of them are.
 
+<span style="color:red;"><b>Note</b></span>: Transactions are only supported when created a single connection using the createConnection method. Transactions are not supported in pool because a pool consists of multiple connections to the database.
+
 ```javascript
 const { connection, query } = require('./connection');
 
 let performTransaction = async () => {
     try {
-        await connection.beginTransaction();
+        connection.beginTransaction();
         var user = await query('INSERT INTO users SET ?', { name: 'John Doe'});
         await query('INSERT INTO addresses SET ?', { user_id: user.insertId, address: '123 Main St' });
-        await connection.commit();
+        connection.commit();
         console.log('Transaction completed successfully');
-        query('SELECT * FROM users').then((results) => {
-            console.log('Fetched records:', results);
-        });
     } catch (err) {
-        await connection.rollback();
+        connection.rollback();
         console.error(err);
     }
 };
@@ -986,16 +1015,13 @@ let performTransaction = async () => {
 
 let performTransaction = async () => {
     try {
-        await connection.beginTransaction();
+        connection.beginTransaction();
         let user = new User({ name: 'John Doe' });
         await user.save();
         let address = new Address({ user_id: user.id, address: '123 Main St' });
         await address.save();
-        await connection.commit();
+        connection.commit();
         console.log('Transaction completed successfully');
-        User.findAll().then((results) => {
-            console.log('Fetched records:', results);
-        });
     } catch (err) {
         await connection.rollback();
         console.error(err);
@@ -1081,6 +1107,8 @@ Order.findByOne({ where: { id: 1 }}).then((order) => {
 
 ```
 
+** Using TypeScript **
+
 ```typescript
 import { MappifyModel } from 'mappifysql';
 import Order from 'path/to/Order';
@@ -1104,10 +1132,9 @@ class ShippingAddress extends MappifyModel {
         this.city = data.city;
     }
     
-    // other methods here...
 
-    super.associations() {
-        super.belongsTo(Order, {
+    associations() {
+        this.belongsTo(Order, {
             as: 'order',
             key: 'id'
             foreignKey: 'order_id'
@@ -1167,6 +1194,8 @@ fetchUserOrders();
 
 ```
 
+** Using TypeScript **
+
 ```typescript
 
 import { MappifyModel } from 'mappifysql';
@@ -1188,10 +1217,9 @@ class Order extends MappifyModel {
         this.total = data.total;
     }
 
-    // other methods here...
 
-    super.associations() {
-        super.belongsTo(User, {
+    associations() {
+        this.belongsTo(User, {
             as: 'user',
             key: 'id'
             foreignKey: 'user_id'
@@ -1241,7 +1269,6 @@ class Product extends MappifyModel {
 module.exports = Product;
 
 ```
-
 Usage:
 ```javascript
 const Product = require('path/to/Product');
@@ -1255,6 +1282,8 @@ Product.findOne({ where: { id: 1 }}).then((product) => {
 });
 
 ```
+
+** Using TypeScript **
 
 ```typescript
 import { MappifyModel } from 'mappifysql';
@@ -1276,10 +1305,10 @@ class Category extends MappifyModel {
         this.name = data.name;
     }
 
-    // other methods here...
 
-    super.associations() {
-        super.belongsToMany(Product, {
+    
+    associations() {
+        this.belongsToMany(Product, {
             as: 'products',
             through: ProductCategory,
             key: 'id',
@@ -1351,6 +1380,8 @@ Enrollment.findOne({ where: { id: 1 }}).then((enrollment) => {
 
 ```
 
+** Using TypeScript **
+
 ```typescript
 import { MappifyModel } from 'mappifysql';
 import Student from 'path/to/studentmodel';
@@ -1374,15 +1405,14 @@ class Enrollment extends MappifyModel {
         this.course_id = data.course_id;
     }
 
-    // other methods here...
 
-    super.associations() {
-        super.belongsTo(Student, {
+    associations() {
+        this.belongsTo(Student, {
             as: 'student',
             key: 'id',
             foreignKey: 'student_id'
         });
-        super.belongsTo(Course, {
+        this.belongsTo(Course, {
             as: 'course',
             key: 'id',
             foreignKey: 'course_id'
