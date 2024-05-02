@@ -250,6 +250,7 @@ module.exports = User;
 import { MappifyModel } from 'mappifysql';
 
 interface UserAttributes {
+    id?: number;
     first_name: string;
     last_name: string;
     email: string;
@@ -260,7 +261,7 @@ interface UserAttributes {
 
 class User extends MappifyModel {
 
-    id: number;
+    id?: number;
     first_name: string;
     last_name: string;
     email: string;
@@ -269,6 +270,7 @@ class User extends MappifyModel {
 
     constructor(data: UserAttributes) {
         super();
+        this.id = data.id;
         this.first_name = data.first_name;
         this.last_name = data.last_name;
         this.email = data.email;
@@ -943,19 +945,21 @@ Product.findElectronics().then((products) => {
 const { MappifyModel } = require('mappifysql');
 
 interface ProductAttributes {
+    id?: number;
     name: string;
     price: number;
     category: string;
 }
 
 class Product extends MappifyModel {
-    id: number;
+    id?: number;
     name: string;
     price: number;
     category: string;
 
     constructor(data: ProductAttributes) {
         super();
+        this.id = data.id;
         this.name = data.name;
         this.price = data.price;
         this.category = data.category;
@@ -1045,6 +1049,7 @@ This table provides a quick reference for the methods available in defining rela
 | `hasMany` | Defines a one-to-many relationship where the model has many instances of another model. | `relatedModel`, `options` | `this.hasMany(User, { as: 'user', foreignKey: 'post_id' });` |
 | `belongsToMany` | Defines a many-to-many relationship between two models. | `relatedModel`, `options` | `this.belongsToMany(Course, { as: 'courses', through: Enrollment, key: 'id', foreignKey: 'student_id', otherKey: 'course_id' });` |
 | `populate` | Fetches the related data for a given relation. | `relation`, `options` (optional) | `await post.populate('user');` |
+| `attach` | Attaches a new record to the related model and associates it with the current model. | `target`, `relation`, `options` (optional) | `await post.attach(post, 'posts');` |
 
 
 
@@ -1064,10 +1069,18 @@ This table provides a quick reference for the options available in defining rela
 |               | key           | The primary key in the related model. |
 |               | foreignKey    | The foreign key in through model for this model. |
 |               | otherKey      | The foreign key in through model for the related model. |
-| populate      | attributes    | The columns to include in the result. |
+| populate      | relation      | The name of the relation to fetch. |
+|               | attributes    | The columns to include in the result. |
+|               | exclude       | The columns to exclude from the result. |
+| attach        | target        | The record to attach to the related model. |
+|               | relation      | The name of the relation to attach to. |
+|               | attributes    | The columns to include in the result. |
 |               | exclude       | The columns to exclude from the result. |
 
-Please note that `attributes` and `exclude` keys in the `populate` method are optional.
+
+Please note that `attributes` and `exclude` keys in the `populate` and `attach` methods are optional and can be used to specify the columns to include or exclude from the result.
+
+<span style="color:red;"><b>Note</b></span>: The `populate` method is used to fetch the related data for a given relation. The `attach` method is used to attach a new record to the related model and associate it with the current model and it can only be used with the `hasOne` and `hasMany` relationships.
 
 #### Defining Relationships
 
@@ -1097,40 +1110,39 @@ Usage:
 ```javascript
 const Order = require('path/to/Order');
 
-Order.findByOne({ where: { id: 1 }}).then((order) => {
-    order.populate('shippingAddress', {exclude: ['created_at', 'updated_at']}).then((order) => {
+Order.findByOne({ where: { id: 1 }}).then(async (order) => {
+   await order.populate('shippingAddress', {exclude: ['created_at', 'updated_at']}).then((order) => {
         console.log('Order with shipping address:', order);
     });
 }).catch((err) => {
     console.error(err);
 });
 
-Order.findAll().then((orders) => {
-    orders.forEach(async (order) => {
-        await order.populate('shippingAddress', {exclude: ['created_at', 'updated_at']});
-        console.log('Order with shipping address:', order);
-    });
+Order.findAll().then(async (orders) => {
+    await Promise.all(orders.map(async (order) => {
+    await order.populate('shippingAddress', {exclude: ['created_at', 'updated_at']});
+    }));
+console.log('Orders with shipping addresses:', orders);
 }).catch((err) => {
     console.error(err);
 });
+
 
 ```
-
-** Using TypeScript **
 
 ```typescript
 import { MappifyModel } from 'mappifysql';
 import Order from 'path/to/Order';
 
 interface ShippingAddressAttributes {
-    id: number;
+    id?: number;
     address: string;
     city: string;
     state: string;
 }
 
 class ShippingAddress extends MappifyModel {
-    id: number;
+    id?: number;
     address: string;
     city: string;
 
@@ -1158,13 +1170,54 @@ Usage:
 ```typescript
 import ShippingAddress from 'path/to/ShippingAddress';
 
-ShippingAddress.findByOne({ where: { id: 1 }}).then((shippingAddress) => {
-    shippingAddress.populate('order', {attributes: ['id', 'total']}).then((shippingAddress) => {
+ShippingAddress.findByOne({ where: { id: 1 }}).then(async(shippingAddress) => {
+   await shippingAddress.populate('order', {attributes: ['id', 'total']}).then((shippingAddress) => {
         console.log('Shipping address with order:', shippingAddress);
     });
 }).catch((err) => {
     console.error(err);
 });
+
+ShippingAddress.findAll().then(async (shippingAddresses) => {
+    await Promise.all(shippingAddresses.map(async (shippingAddress) => {
+    await shippingAddress.populate('order', {attributes: ['id', 'total']});
+    }));
+console.log('Shipping addresses with orders:', shippingAddresses);
+}).catch((err) => {
+    console.error(err);
+});
+
+```
+
+** Using `attach` method **
+
+```javascript
+const Order = require('path/to/Order');
+const ShippingAddress = require('path/to/ShippingAddress');
+
+let createShippingAddress = async () => {
+    var order = await Order.findById(1);
+    var shippingAddress = new ShippingAddress({ address: '123 Main St', city: 'New York', state: 'NY' });
+    await order.attach(shippingAddress, 'shippingAddress', { exclude: ['created_at', 'updated_at'] });
+    console.log('Shipping address created:', shippingAddress);
+};
+
+createShippingAddress();
+
+```
+
+```typescript
+import Order from 'path/to/Order';
+import ShippingAddress from 'path/to/ShippingAddress';
+
+let createShippingAddress = async () => {
+    var order = await Order.findOne({ where: { id: 1 } });
+    var shippingAddress = new ShippingAddress({ address: '123 Main St', city: 'New York', state: 'NY' });
+    await order.attach(shippingAddress, 'shippingAddress');
+    console.log('Shipping address created:', shippingAddress);
+};
+
+createShippingAddress();
 
 ```
 
@@ -1203,21 +1256,19 @@ fetchUserOrders();
 
 ```
 
-** Using TypeScript **
-
 ```typescript
 
 import { MappifyModel } from 'mappifysql';
 import Order from 'path/to/Order';
 
 interface OrderAttributes {
-    id: number;
+    id?: number;
     total: number;
 }
 
 
 class Order extends MappifyModel {
-    id: number;
+    id?: number;
     total: number;
 
     constructor(data: OrderAttributes) {
@@ -1253,6 +1304,39 @@ let fetchOrderUser = async () => {
 fetchOrderUser();
 
 ```
+
+** Using `attach` method **
+
+```javascript
+const User = require('path/to/User');
+const Order = require('path/to/Order');
+
+let createOrder = async () => {
+    var user = await User.findById(1);
+    var order = new Order({ total: 1000 });
+    await user.attach(order, 'orders');
+    console.log('Order created:', order);
+};
+
+createOrder();
+
+```
+
+```typescript
+import User from 'path/to/User';
+import Order from 'path/to/Order';
+
+let createOrder = async () => {
+    var user = await User.findOne({ where: { id: 1 } });
+    var order = new Order({ total: 1000 });
+    await user.attach(order, 'orders');
+    console.log('Order created:', order);
+};
+
+createOrder();
+
+```
+
 
 #### Many-to-Many Relationship
 
@@ -1300,12 +1384,12 @@ import Product from 'path/to/Product';
 import ProductCategory from 'path/to/ProductCategory';
 
 interface CategoryAttributes {
-    id: number;
+    id?: number;
     name: string;
 }
 
 class Category extends MappifyModel {
-    id: number;
+    id?: number;
     name: string;
 
     constructor(data: CategoryAttributes) {
@@ -1389,21 +1473,19 @@ Enrollment.findOne({ where: { id: 1 }}).then((enrollment) => {
 
 ```
 
-** Using TypeScript **
-
 ```typescript
 import { MappifyModel } from 'mappifysql';
 import Student from 'path/to/studentmodel';
 import Course from 'path/to/coursemodel';
 
 interface EnrollmentAttributes {
-    id: number;
+    id?: number;
     student_id: number;
     course_id: number;
 }
 
 class Enrollment extends MappifyModel {
-    id: number;
+    id?: number;
     student_id: number;
     course_id: number;
 
@@ -1481,3 +1563,6 @@ We would like to thank all the contributors to the project and the open-source c
 <!-- - [MappifySQL Contributors](https://github.com/Walidadebayo/mappifysql/graphs/contributors) -->
 
 <!-- - [MappifySQL Open Source Community]( -->
+
+
+<a href="https://www.buymeacoffee.com/walidadebayo"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=walidadebayo&button_colour=FFDD00&font_colour=000000&font_family=Comic&outline_colour=000000&coffee_colour=ffffff" /></a>

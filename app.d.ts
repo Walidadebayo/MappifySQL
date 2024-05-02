@@ -18,7 +18,7 @@ declare module 'mappifysql' {
     * @example using in instance functions method -> this.constructor.tableName
     * @returns {string} The table name.
     */
-    static tableName(): string;
+    static get tableName(): string;
 
 
     /**
@@ -181,8 +181,30 @@ declare module 'mappifysql' {
    * console.log(enrollment.course);
    * @returns {this} The instance of the model with the populated relation.
    */
-    populate(relation: string, options?: object): any;
+    populate(relation: string, options?: object): Promise<this>;
 
+
+    /**
+   * This method attaches a new record to the related model and associates it with the current instance.
+   * @param {Model} target - The record to attach to the relation.
+   * @param {string} relation - The name of the relation to attach to.
+   * @param {object} options - The options for the query. - (optional)
+   * @param {Array} options.attributes - The columns to include in the result. - (optional)
+   * @param {Array} options.exclude - The columns to exclude from the result. - (optional)
+   * @example const user = await User.findById(1);
+   * const post = new Post({ title: 'Post 1', content: 'This is post 1' });
+   * await user.attach(post, 'posts');
+   * console.log(user);
+   * @example const order = await Order.findOne({ where: { id: 1 } });
+   * const shippingAddress = new ShippingAddress({ address: '123 Main St', city: 'Springfield', state: 'IL', zip: '62701' });
+   * await order.attach(shippingAddress, 'shippingAddress');
+   * console.log(order);
+   *@returns {Promise<this>} A promise that resolves to the instance with the related data attached.
+   * @throws {Error} Throws an error if the relation is not defined.
+   * @throws {Error} Throws an error if the relation is not a hasOne or hasMany relation.
+   * @throws {Error} Throws an error if the foreign key is not defined.
+   */
+  attach(target: Model, relation: string, options?: object): Promise<this>;
 
     /**
    * This method saves the instance to the database.
