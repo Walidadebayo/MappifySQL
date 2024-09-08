@@ -327,7 +327,7 @@ declare module 'mappifysql' {
   * This static method deletes a record from the table based on its ID.
   * @param {number} id - The ID of the record to delete.
   * @example await User.findByIdAndDelete(1);
-  * @returns {Promise<true>} The true if the record was deleted.
+  * @returns {Promise<boolean>} A promise that resolves to true if the record was deleted, otherwise false.
   * @throws {Error} Throws an error if the ID is not provided or if no record is found.
   * @example await User.findByIdAndDelete(1);
   */
@@ -340,7 +340,7 @@ declare module 'mappifysql' {
    * @param {object} options.where - The WHERE clause for the query.
    * @param {object} data - The new data for the record.
    * @example await Product.findOneAndDelete({ where: { name: 'Product 1' } });
-   * @returns {Promise<true>} The true if the record was deleted.
+   * @returns {Promise<Model|null>} The updated instance or null if no record was found.
    * @throws {Error} Throws an error if the where clause is not provided or if no record is found.
    */
     static findOneAndDelete(options: object): Promise<MappifyModel>;
@@ -369,43 +369,8 @@ static findOneAndUpdate(options: { where?: object, attributes?: object, exclude?
    * @throws {Error} Throws an error if the ID is not provided or if no record is found.
    */
     static findByIdAndUpdate(id: number, data: object): Promise<MappifyModel | null>;
-
-        /**
-   * This static method fetches all records from the table based on the provided options.
-   * @param {object} options - The options for the query.
-   * @param {object} options.where - The WHERE clause for the query.
-   * @param {Array} options.exclude - The columns to exclude from the result.
-   * @param {Array} options.attributes - The columns to include in the result.
-   * @param {number} options.limit - The maximum number of records to fetch.
-   * @param {number} options.offset - The number of records to skip.
-   * @param {string} options.order - The column to order the results by.
-   * @param {string} options.group - The column to group the results by.
-   * @example var products = await Product.findAll();
-   * @example var products = await Product.findAll({ where: { price: { gt: 100 } } });
-   * @example var products = await Product.findAll({ where: { price: { gt: 100, lt: 200 } } });
-   * @example var products = await Product.findAll({ where: { price: { in: [100, 200] } } });
-   * @example var products = await Product.findAll({ where: { price: { notIn: [100, 200] } } });
-   * @example var products = await Product.findAll({ where: { price: { between: [100, 200] } } });
-   * @example var products = await Product.findAll({ where: { price: { notBetween: [100, 200] } } });
-   * @example var products = await Product.findAll({ where: { name: { like: 'Product%' } } });
-   * @example var products = await Product.findAll({ where: { name: { notLike: 'Product%' } } });
-   * @example var products = await Product.findAll({ where: { name: { isNull: true } } });
-   * @example var products = await Product.findAll({ where: { name: { isNotNull: true } } });
-   * @example var products = await Product.findAll({ where: { not: { name: 'Product 1' } } });
-   * @example var products = await Product.findAll({ where: { and: [{ name: 'Product 1' }, { price: 100 }] } });
-   * @example var products = await Product.findAll({ where: { or: [{ name: 'Product 1' }, { price: 100 }] } });
-   * @example var products = await Product.findAll({ exclude: ['created_at', 'updated_at'] });
-   * @example var products = await Product.findAll({ attributes: ['name', 'price'] });
-   * @example var products = await Product.findAll({ limit: 10, offset: 0 });
-   * @example var products = await Product.findAll({ order: 'price DESC' });
-   * @example var products = await Product.findAll({ group: 'category' });
-   * @returns {Promise<Object<{ count: number, rows: Array<MappifyModel> }>>} An object containing the count and an array of instances. { count: number, rows: Array }
-   * @throws {Error} Throws an error if no record was found.
-    */
-    static async findAndCountAll(options?: object): Promise<Object<{ count: number, rows: Array<MappifyModel> }>>;
   }
-  
-  
+
 
 
   /**
