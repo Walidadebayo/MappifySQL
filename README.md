@@ -587,7 +587,7 @@ User.findById(1).then((record) => {
 });
 ```
 
-### MappifySQL findAll Method
+### MappifySQL findAll Method & findAndCountAll Method
 
 This method finds all records in the database that match the specified conditions. The `options` parameter is an object that can contain the following properties:
 
@@ -995,9 +995,11 @@ Product.findElectronics().then((products) => {
 
 ### MappifySQL Transactions
 
+## Transactions for single connection - db.createConnection()
+
 MappifySQL supports transactions, allowing you to execute multiple database operations as a single unit of work. This ensures that all operations are completed successfully or none of them are.
 
-<span style="color:red;"><b>Note</b></span>: Transactions are only supported when created a single connection using the createConnection method. Transactions are not supported in pool because a pool consists of multiple connections to the database.
+
 
 ```javascript
 const { connection, query } = require('./connection');
@@ -1027,7 +1029,44 @@ let performTransaction = async () => {
         connection.commit();
         console.log('Transaction completed successfully');
     } catch (err) {
-        await connection.rollback();
+        connection.rollback();
+        console.error(err);
+    }
+};
+    
+```
+
+## Transactions for pool connection - db.createPool()
+
+```javascript
+const { query } = require('./connection');
+
+let performTransaction = async () => {
+    try {
+        await query('START TRANSACTION');
+        var user = await query('INSERT INTO users SET ?', { name: 'John Doe'});
+        await query('INSERT INTO addresses SET ?', { user_id: user.insertId, address: '123 Main St' });
+        await query('COMMIT');
+        console.log('Transaction completed successfully');
+    } catch (err) {
+        await query('ROLLBACK');
+        console.error(err);
+    }
+};
+
+//using transaction with the model class
+
+let performTransaction = async () => {
+    try {
+        await query('START TRANSACTION');
+        let user = new User({ name: 'John Doe' });
+        await user.save();
+        let address = new Address({ user_id: user.id, address: '123 Main St' });
+        await address.save();
+        await query('COMMIT');
+        console.log('Transaction completed successfully');
+    } catch (err) {
+        await query('ROLLBACK');
         console.error(err);
     }
 };
