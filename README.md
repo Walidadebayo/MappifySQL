@@ -13,14 +13,32 @@
 
 MappifySQL is a lightweight, easy-to-use Object-Relational Mapping (ORM) library for MySQL databases, designed for use with Node.js. It provides an intuitive, promise-based API for interacting with your MySQL database using JavaScript or TypeScript.
 
+## Table of Contents
+- [Features](#features)
+- [Why MappifySQL?](#why-mappifysql)
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+  - [Connecting to a Database](#connecting-to-a-database)
+  - [Class, Function, and Object available in MappifySQL](#class-function-and-object-available-in-mappifysql)
+  - [Using the Query Method](#using-the-query-method)
+  - [Using the Connection Object](#using-the-connection-object)
+  - [Using the Model Class](#using-the-model-class)
+  - [Performing CRUD Operations](#performing-crud-operations)
+  - [Transactions](#transactions)
+  - [Relationships](#relationships)
+- [Issues](#issues)
+- [License](#license)
+- [References](#references)
 
 ## Features
 
 - **Object-Relational Mapping**: Map your database tables to JavaScript or TypeScript objects for easier and more intuitive data manipulation.
+- **Auto Connection**: Automatically connect to your database using environment variables.
+- **Connection Pooling**: Use connection pooling to improve performance and scalability in your application.
+- **Model Class**: Define a model class for each table in your database to encapsulate database operations.
 - **CRUD Operations**: Easily perform Create, Read, Update, and Delete operations on your database.
 - **Transactions**: Safely execute multiple database operations at once with transaction support.
 - **Relationships**: Define relationships between your tables to easily fetch related data.
-- **Model Class**: Define a model class for each table in your database to encapsulate database operations.
 - **Environment Variables**: Use environment variables to store database connection details securely.
 - **TypeScript Support**: Use MappifySQL with TypeScript for type-safe database interactions.
 - **SQL Injection Protection**: Protect your application from SQL injection attacks with parameterized queries.
@@ -43,32 +61,29 @@ npm install mappifysql
 
 ## Getting Started
 
-### Importing the Library
 
-#### import and use the library in your JavaScript or TypeScript file:
+### import and use the library in your JavaScript or TypeScript file:
 
 ```javascript
 const mappifysql = require('mappifysql');
 
-const Database = mappifysql.Database;
 const MappifyModel = mappifysql.MappifyModel;
 ```
 
 ```typescript
 import mappifysql from 'mappifysql';
 
-const Database = mappifysql.Database;
 const MappifyModel = mappifysql.MappifyModel;
 ```
 
 #### import the classes directly in your JavaScript or TypeScript file:
 
 ```javascript
-const { Database, MappifyModel } = require('mappifysql');
+const { MappifyModel } = require('mappifysql');
 ```
 
 ```typescript
-import { Database, MappifyModel } from 'mappifysql';
+import { MappifyModel } from 'mappifysql';
 ```
 
 Here's a quick example to create a connection to a MySQL database using MappifySQL:
@@ -83,148 +98,141 @@ DB_USER=root
 DB_PASSWORD=password
 DB_NAME=mydatabase
 DB_PORT=3306 ## (optional) default is 3306
+
+DB_USE_POOL=true ## (optional) default is false ## For pool connection
+
+# For connection pooling
+DB_WAIT_FOR_CONNECTIONS=true ## (optional) default is true
+DB_CONNECTION_LIMIT=10 ## (optional) default is 10
+DB_MAX_IDLE=10 ## (optional) default is set to the connection limit
+DB_IDLE_TIMEOUT=60000 ## (optional) default is 60000
+DB_QUEUE_LIMIT=0 ## (optional) default is 0
+DB_ENABLE_KEEP_ALIVE=true ## (optional) default is true
+DB_KEEP_ALIVE_INITIAL_DELAY=0 ## (optional) default is 0
+
 ```
 
-Then, create a new JavaScript file (e.g., connection.js) and one of the following code snippets:
+### Class, Function, and Object available in MappifySQL
+
+| Class/Function/Object | Description |
+| --- | --- |
+| `MappifyModel` | Base class for defining models that represent database tables. |
+| `query` | Function for executing SQL queries. |
+| `connection` | Object representing the current MySQL connection. |
+| `beginTransaction` | Function to begin a new transaction. |
+| `commit` | Function to commit the current transaction. |
+| `rollback` | Function to roll back the current transaction. |
 
 
-#### Create a single connection to the database
-Create a new instance of the Database class and call the createConnection method to establish a single connection to the database
+### Using the Query Method
+
+The query method allows you to execute SQL queries and returns a promise that resolves with the result of the query. You can use this method to perform CRUD operations, fetch data, and more.
+
+
+Here's an example of how to use the query method to fetch all records from a table:
 
 ```javascript
-
-const { Database } = require('mappifysql');
-
-const db = new Database();
-
-db.createConnection().then(() => {
-    console.log('Database connected successfully');
-}).catch((err) => {
-    console.error(err);
-});
-
-var connection = db.getConnection();
-var query = db.getQuery();
-
-module.exports = { connection, query };
-
-```
-
-** Using TypeScript **
-
-```typescript
-
-import { Database } from 'mappifysql';
-
-const db = new Database();
-
-db.createConnection().then(() => {
-    console.log('Database connected successfully');
-}).catch((err) => {
-    console.error(err);
-});
-
-var connection = db.getConnection();
-var query = db.getQuery();
-
-export { connection, query };
-
-```
+const { query } = require('mappifysql');
+// import { query } from 'mappifysql';
 
 
-<div align="center">
-<img src="https://i.ibb.co/NptYQGf/createsingleconnection.png" alt="createSingleConnection" border="0">
-</div>
-
-#### Create a pool of connections to the database
-Call the createPool method to establish a pool of connections to the database. This is useful for managing multiple concurrent database queries, improving performance.
-
-```javascript
-
-const { Database } = require('mappifysql');
-
-const db = new Database();
-
-db.createPool().then(() => {
-    console.log('Database connected successfully');
-}).catch((err) => {
-    console.error(err);
-});
-
-var connection = db.getConnection();
-var query = db.getQuery();
-
-module.exports = { connection, query };
-
-```
-
-```typescript
-
-import { Database } from 'mappifysql';
-
-const db = new Database();
-
-db.createPool().then(() => {
-    console.log('Database connected successfully');
-}).catch((err) => {
-    console.error(err);
-});
-
-var connection = db.getConnection();
-var query = db.getQuery();
-
-export { connection, query };
-
-```
-
-<div align="center">
-<img src="https://i.ibb.co/6r0npjy/createpoolconnection.png" alt="createPoolConnection" border="0">
-</div>
-
-
-Methods available in the connection object:
-
-
-| Method | Description | Parameters | Supported by |
-| --- | --- | --- | --- |
-| `beginTransaction` | Begins a transaction. | `callback?: (err: any) => void` | `createConnection` |
-| `commit` | Commits the current transaction. | `callback?: (err: any) => void` | `createConnection` |
-| `rollback` | Rolls back the current transaction. | `callback?: (err: any) => void` | `createConnection` |
-| `query` | Sends a SQL query to the database. | `sql: string`, `values?: any`, `callback?: (error: any, results: any, fields: any) => void` | `createConnection`, `createPool` |
-| `end` | Ends the connection. | `callback?: (err: any) => void` | `createConnection`, `createPool` |
-| `destroy` | Destroys the connection. | None | `createConnection` |
-| `pause` | Pauses the connection. | None | `createConnection` |
-| `resume` | Resumes the connection. | None | `createConnection` |
-| `escape` | Escapes a value for SQL. | `value: any` | `createConnection`, `createPool` |
-| `escapeId` | Escapes an identifier for SQL. | `value: any` | `createConnection`, `createPool` |
-| `format` | Formats a SQL query string. | `sql: string`, `values?: any` | `createConnection`, `createPool` |
-| `ping` | Pings the server. | `callback?: (err: any) => void` | `createConnection`, `createPool` |
-| `changeUser` | Changes the user for the current connection. | `options: any`, `callback?: (err: any) => void` | `createConnection` |
-
-Example:
-```javascript
-const { connection } = require('./connection');
-
-connection.query('SELECT * FROM users', (err, results, fields) => {
-    if (err) {
-        throw err;
+let fetchAll = async () => {
+    try {
+        let results = await query('SELECT * FROM users');
+        console.log('Fetched records:', results);
+    } catch (err) {
+        console.error(err);
     }
-    console.log('Fetched records:', results);
-});
-```
+};
 
-** Using TypeScript **
-
-```typescript
-import { connection } from './connection';
-
-connection.query('SELECT * FROM users', (err, results, fields) => {
-    if (err) {
-        throw err;
+let addData = async () => {
+    try {
+        let result = await query('INSERT INTO users (first_name, email) VALUES (?, ?)', ['John Doe', 'example@gmail.com']);
+        console.log('New record - inserted id:', result.insertId);
+    } catch (err) {
+        console.error(err);
     }
-    console.log('Fetched records:', results);
-});
+};
 ```
+<span style="color:red;"><b>Note</b></span>: The query method returns a promise that resolves with the result of the query. You can use async/await or then and catch to handle the asynchronous nature of the database operations.
+
+### Using the Connection Object
+
+The connection object provides methods for interacting with the database. You can use the query method to execute SQL queries and the other methods to query the database, manage transactions, ping the server, and more.
+
+```javascript
+const { connection } = require('mappifysql');
+// import { connection } from 'mappifysql';
+
+(async () => {
+    let conn = await connection;
+    console.log('Connected to database:', conn.threadId);
+
+    // Perform database operations here
+    conn.query('SELECT * FROM users', (err, results) => {
+        if (err) {
+            console.error(err);
+        } else {
+            console.log('Fetched records:', results);
+        }
+    });
+
+    //ping the server
+    conn.ping((err) => {
+        if (err) {
+            console.error(err);
+        } else {
+            console.log('Server pinged successfully');
+        }
+    });
+
+    // End the connection
+    conn.end(); // or conn.release() to release the connection back to the pool
+
+
+    conn.pause();
+
+    setTimeout(() => {
+        conn.resume();
+    }, 5000);
+
+})();
+```
+    
+
+Here's a list of the methods available in the connection object:
+you can also use other methods available in the connection object that are not listed here but are available in the mysql library.
+
+| Method | Description | Parameters |
+| --- | --- | --- |
+| `authorized` | The authorized status of the connection. | None |
+| `beginTransaction` | Begins a transaction. | `callback?: (err: any) => void` |
+| `changeUser` | Changes the user for the current connection. | `options: any`, `callback?: (err: any) => void` |
+| `commit` | Commits the current transaction. | `callback?: (err: any) => void` |
+| `destroy` | Destroys the connection. | None |
+| `emit` | Synchronously calls each of the listeners registered for the event named eventName. | `event: string | symbol`, `...args: any[]` |
+| `end` | Ends the connection. | `callback?: (err: any) => void` |
+| `escape` | Escapes a value for SQL. | `value: any` |
+| `escapeId` | Escapes an identifier for SQL. | `value: any` |
+| `execute` | Executes a SQL query and returns a promise. | `sql: string`, `callback?: any` |
+| `format` | Formats a SQL query string. | `sql: string`, `values?: any` |
+| `once` | Adds a one-time listener function for the event named eventName. | `event: string | symbol`, `listener: (...args: any[]) => void` |
+| `on` | Adds the listener function to the end of the listeners array for the event named eventName. | `event: string | symbol`, `listener: (...args: any[]) => void` |
+| `pause` | Pauses the connection. | None |
+| `ping` | Pings the server. | `callback?: (err: any) => void` |
+| `prepare` | Prepares a SQL statement. | `sql: string`, `callback?: (err: any, statement: PrepareStatementInfo) => void` |
+| `promise` | Returns a promise that resolves to the connection. | `promiseImpl?: PromiseConstructor` |
+| `query` | Sends a SQL query to the database. | `sql: string`, `values?: any`, `callback?: (error: any, results: any, fields: any) => void` |
+| `release` | Releases the connection back to the pool. | None |
+| `releaseConnection` | Releases a connection back to the pool. | `connection: PoolConnection` |
+| `resume` | Resumes the connection. | None |
+| `rollback` | Rolls back the current transaction. | `callback?: (err: any) => void` |
+| `sequenceId` | The sequence ID of the connection. | None |
+| `serverHandshake` | The server handshake. | `args: any` |
+| `threadId` | The thread ID of the connection. | None |
+| `unprepare` | Unprepares a previously prepared statement. | `sql: string` |
+
+
 
 ### Using the Model Class
 
@@ -847,13 +855,13 @@ User.findByIdAndUpdate(1, { name: 'Jane Doe', picture: 'profile.jpg' }).then(() 
 });
 ```
 
-### Custom Queries
+<!-- ### Custom Queries
 
 You can execute custom SQL queries using the query method provided by MappifySQL. This method allows you to execute any SQL query and returns a promise that resolves with the result of the query.
 
 Example:
 ```javascript
-const { connection, query } = require('./connection');
+const { connection, query } = require('mappifysql');
 
 let customQuery = async () => {
     try {
@@ -878,8 +886,8 @@ let customQuery = async () => {
     }
 };
 
-```
-<span style="color:red;"><b>Note</b></span>: The query method returns a promise that resolves with the result of the query. You can use async/await to handle the asynchronous nature of the database operations.
+``` -->
+
 
 ### Pagination
 
@@ -997,20 +1005,20 @@ Product.findElectronics().then((products) => {
 
 MappifySQL supports transactions, allowing you to execute multiple database operations as a single unit of work. This ensures that all operations are completed successfully or none of them are.
 
-<span style="color:red;"><b>Note</b></span>: Transactions are only supported when created a single connection using the createConnection method. Transactions are not supported in pool because a pool consists of multiple connections to the database.
+#### Starting a Transaction using the beginTransaction, commit, and rollback methods
 
 ```javascript
-const { connection, query } = require('./connection');
+const { query, beginTransaction, commit, rollback } = require('mappifysql');
 
 let performTransaction = async () => {
     try {
-        connection.beginTransaction();
-        var user = await query('INSERT INTO users SET ?', { name: 'John Doe'});
+        await beginTransaction();
+        const user = await query('INSERT INTO users SET ?', { name: 'John Doe'});
         await query('INSERT INTO addresses SET ?', { user_id: user.insertId, address: '123 Main St' });
-        connection.commit();
+        await commit();
         console.log('Transaction completed successfully');
     } catch (err) {
-        connection.rollback();
+        await rollback();
         console.error(err);
     }
 };
@@ -1019,21 +1027,103 @@ let performTransaction = async () => {
 
 let performTransaction = async () => {
     try {
-        connection.beginTransaction();
+        await beginTransaction();
         let user = new User({ name: 'John Doe' });
         await user.save();
         let address = new Address({ user_id: user.id, address: '123 Main St' });
         await address.save();
-        connection.commit();
+        await commit();
         console.log('Transaction completed successfully');
     } catch (err) {
-        await connection.rollback();
+        await rollback();
         console.error(err);
     }
 };
     
 ```
 
+#### Starting a Transaction using the query or connection object directly
+
+<span style="color:red;"><b>Note</b></span>: When using the connection object directly, you must release the connection after the transaction is completed in the finally block and you can't use the connection object directly with the model class as it is not exposed to the model class.
+
+If you wan to use transaction with the model class, you must use the query method or <a href="#starting-a-transaction-using-the-begintransaction-commit-and-rollback-method">using beginTransaction commit, and rollback methods from mappifysql</a>
+
+```javascript
+const { query, connection } = require('mappifysql');
+
+let performTransaction = async () => {
+    try {
+        await query('START TRANSACTION');
+        const user = await query('INSERT INTO users SET ?', { name: 'John Doe'});
+        await query('INSERT INTO addresses SET ?', { user_id: user.insertId, address: '123 Main St' });
+        await query('COMMIT');
+        console.log('Transaction completed successfully');
+    } catch (err) {
+        await query('ROLLBACK');
+        console.error(err);
+    } 
+};
+
+// using query function with the Model class
+
+let performTransaction = async () => {
+    try {
+        await query('START TRANSACTION');
+        let user = new User({ name: 'John Doe' });
+        await user.save();
+        let address = new Address({ user_id: user.id, address: '123 Main St' });
+        await address.save();
+        await query('COMMIT');
+        console.log('Transaction completed successfully');
+    } catch (err) {
+        await query('ROLLBACK');
+        console.error(err);
+    }
+};
+
+// using the connection object directly
+
+// Note: You can't use the connection object directly with the model class as it is not exposed to the model class and the connection must be released after the transaction is completed in the finally block.
+
+
+let performTransaction = async () => {
+    let conn = await connection;
+    try { 
+        conn.beginTransaction();
+        const user = conn.query('INSERT INTO users SET ?', { first_name: 'John Doe' });
+        conn.query('INSERT INTO addresses SET ?', { user_id: user.insertId, address: '123 Main St' });
+        conn.commit();
+        console.log('Transaction completed successfully');
+    } catch (err) {
+        conn.rollback();
+        console.error(err);
+    } finally {
+        conn.release();
+    }
+};
+
+
+// using the connection object query method
+
+let performTransaction = async () => {
+    let conn = await connection;
+    try { 
+        conn.query('START TRANSACTION');
+        const user = conn.query('INSERT INTO users SET ?', { first_name: 'John Doe' });
+        conn.query('INSERT INTO addresses SET ?', { user_id: user.insertId, address: '123 Main St' });
+        conn.query('COMMIT');
+        console.log('Transaction completed successfully');
+    } catch (err) {
+        conn.query('ROLLBACK');
+        console.error(err);
+    } finally {
+        conn.release();
+    }
+};
+
+
+
+```
 
 ### Relationships
 MappifySQL allows you to define relationships between your tables, making it easier to fetch related data.
@@ -1106,14 +1196,17 @@ module.exports = Order;
 
 ```
 
+
 Usage:
 ```javascript
 const Order = require('path/to/Order');
 
-Order.findByOne({ where: { id: 1 }}).then(async (order) => {
-   await order.populate('shippingAddress', {exclude: ['created_at', 'updated_at']}).then((order) => {
-        console.log('Order with shipping address:', order);
-    });
+Order.findOne({ where: { id: 1 }}).then(async (order) => {
+    if (order) {
+        await order.populate('shippingAddress', {exclude: ['created_at', 'updated_at']}).then((order) => {
+            console.log('Order with shipping address:', order);
+        });
+    }
 }).catch((err) => {
     console.error(err);
 });
@@ -1342,10 +1435,11 @@ createOrder();
 
 In a many-to-many relationship, each record in one table is associated with one or more records in another table, and vice versa. For example, each product can belong to multiple categories, and each category can have multiple products.
 
+<span style="color:red;"><b>Note</b></span>: When using the `belongsToMany` method, import the through model at the bottom of the file to avoid circular dependencies.
+
 ```javascript
 const { MappifyModel } = require('mappifysql');
 const Category = require('path/to/Category');
-const ProductCategory = require('path/to/ProductCategory');
 
 class Product extends MappifyModel {
     associations() {
@@ -1360,6 +1454,7 @@ class Product extends MappifyModel {
 }
 
 module.exports = Product;
+const ProductCategory = require('path/to/ProductCategory');
 
 ```
 Usage:
@@ -1381,7 +1476,6 @@ Product.findOne({ where: { id: 1 }}).then((product) => {
 ```typescript
 import { MappifyModel } from 'mappifysql';
 import Product from 'path/to/Product';
-import ProductCategory from 'path/to/ProductCategory';
 
 interface CategoryAttributes {
     id?: number;
@@ -1412,7 +1506,7 @@ class Category extends MappifyModel {
 }
 
 export default Category;
-
+import ProductCategory from 'path/to/ProductCategory';
 ```
 
 Usage:
@@ -1517,7 +1611,7 @@ export default Enrollment;
 
 Usage:
 ```typescript
-import Enrollment from 'path/to/Enrollment
+import Enrollment from 'path/to/Enrollment';
 
 let enroll = async () => {
     var enrollment = await Enrollment.findOne({ where: { id: 1 } });

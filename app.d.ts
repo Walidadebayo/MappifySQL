@@ -1,7 +1,9 @@
+import { ErrorPacketParams, OkPacketParams, Pool, PoolConnection, Prepare, PrepareStatementInfo } from "mysql2";
+
 /**
  * A module that provides a database connection and a model class for interacting with the database.
  * @example const mappifysql = require('mappifysql');
- * @example const { Database, MappifyModel } = require('mappifysql');
+ * @example const { Database, MappifyModel, query, connection } = require('mappifysql');
  * @module mappifysql
  */
 declare module 'mappifysql' {
@@ -46,7 +48,7 @@ declare module 'mappifysql' {
 
     /**
    * This method is used to define a one-to-one relationship between two models.
-   * @param {Model} relatedModel - The related model.
+   * @param {MappifyModel} relatedModel - The related model.
    * @param {object} options - The options for the association.
    * @param {string} options.as - The alias for the association.
    * @param {string} options.foreignKey - The foreign key in this model.
@@ -60,12 +62,12 @@ declare module 'mappifysql' {
    * }
    * }
    */
-    hasOne(relatedModel: Class, options: object): void;
+    hasOne(relatedModel: MappifyModel, options: { as: string, foreignKey: string }): void;
 
 
     /**
    * This method is used to define a one-to-one relationship between two models.
-   * @param {Model} relatedModel - The related model.
+   * @param {MappifyModel} relatedModel - The related model.
    * @param {object} options - The options for the association.
    * @param {string} options.as - The alias for the association.
    * @param {string} options.key - The primary key in the related model.
@@ -97,12 +99,12 @@ declare module 'mappifysql' {
    * }
    * }
    */
-    belongsTo(relatedModel: Class, options: object): void;
+    belongsTo(relatedModel: typeof MappifyModel, options: { as: string, key: string, foreignKey: string }): void;
 
 
     /**
    * This method is used to define a one-to-many relationship between two models.
-   * @param {Model} relatedModel - The related model.
+   * @param {MappifyModel} relatedModel - The related model.
    * @param {object} options - The options for the association.
    * @param {string} options.as - The alias for the association.
    * @param {string} options.foreignKey - The foreign key in the related model.
@@ -116,12 +118,12 @@ declare module 'mappifysql' {
    * }
    * }
    */
-    hasMany(relatedModel: Class, options: object): void;
+    hasMany(relatedModel: MappifyModel, options: { as: string, foreignKey: string }): void;
 
 
     /**
    * This method is used to define a many-to-many relationship between two models.
-   * @param {Model} relatedModel - The related model.
+   * @param {MappifyModel} relatedModel - The related model.
    * @param {object} options - The options for the association.
    * @param {string} options.as - The alias for the association.
    * @param {string} options.through - The "join" table that connects the two models. i.e., the table that stores the foreign keys of the two models.
@@ -155,7 +157,7 @@ declare module 'mappifysql' {
    * }
    * }
    */
-    belongsToMany(relatedModel: Class, options: object): void;
+    belongsToMany(relatedModel: MappifyModel, options: { as: string, through: MappifyModel, key: string, foreignKey: string, otherKey: string }): void;
 
 
     /**
@@ -181,12 +183,12 @@ declare module 'mappifysql' {
    * console.log(enrollment.course);
    * @returns {this} The instance of the model with the populated relation.
    */
-    populate(relation: string, options?: object): Promise<this>;
+    populate(relation: string, options?: { attributes?: Array<string>, exclude?: Array<string> }): this;
 
 
     /**
    * This method attaches a new record to the related model and associates it with the current instance.
-   * @param {Model} target - The record to attach to the relation.
+   * @param {MappifyModel} target - The record to attach to the relation.
    * @param {string} relation - The name of the relation to attach to.
    * @param {object} options - The options for the query. - (optional)
    * @param {Array} options.attributes - The columns to include in the result. - (optional)
@@ -204,7 +206,7 @@ declare module 'mappifysql' {
    * @throws {Error} Throws an error if the relation is not a hasOne or hasMany relation.
    * @throws {Error} Throws an error if the foreign key is not defined.
    */
-  attach(target: Model, relation: string, options?: object): Promise<this>;
+    attach(target: MappifyModel, relation: string, options?: { attributes?: Array<string>, exclude?: Array<string> }): Promise<this>;
 
     /**
    * This method saves the instance to the database.
@@ -246,8 +248,8 @@ declare module 'mappifysql' {
      * This static method fetches one record from the table based on the provided options.
      * @param {object} options - The options for the query.
      * @param {object} options.where - The WHERE clause for the query.
-     * @param {Array} options.exclude - The columns to exclude from the result.
-     * @param {Array} options.attributes - The columns to include in the result.
+     * @param {Array} [options.exclude] - The columns to exclude from the result.
+     * @param {Array} [options.attributes] - The columns to include in the result.
      * @example var product = await Product.findOne({ where: { id: 1 } });
      * @example var product = await Product.findOne({ where: { name: 'Product 1' }, exclude: ['created_at', 'updated_at'] });
      * @example var product = await Product.findOne({ where: { price: { gt: 100 } }, attributes: ['name', 'price'] });
@@ -265,7 +267,7 @@ declare module 'mappifysql' {
      * @example var product = await Product.findOne({ where: { or: [{ name: 'Product 1' }, { price: 100 }] } });
      * @returns {Promise<Object|null>} An instance of an array or null if no record was found.
      */
-    static findOne(options: object): Promise<Object<MappifyModel>>;
+    static findOne(options: { where: object, exclude?: Array<string>, attributes?: Array<string> }): Promise<MappifyModel | null>;
 
 
     /**
@@ -275,19 +277,19 @@ declare module 'mappifysql' {
      * console.log(product);
      * @returns {Promise<Object|null>} An instance of an array or null if no record was found.
      */
-    static findById(id: number): Promise<Object<MappifyModel>>;
+    static findById(id: number): Promise<MappifyModel | null>;
 
 
     /**
    * This static method fetches all records from the table based on the provided options.
-   * @param {object} options - The options for the query.
-   * @param {object} options.where - The WHERE clause for the query.
-   * @param {Array} options.exclude - The columns to exclude from the result.
-   * @param {Array} options.attributes - The columns to include in the result.
-   * @param {number} options.limit - The maximum number of records to fetch.
-   * @param {number} options.offset - The number of records to skip.
-   * @param {string} options.order - The column to order the results by.
-   * @param {string} options.group - The column to group the results by.
+   * @param {object} [options] - The options for the query.
+   * @param {object} [options.where] - The WHERE clause for the query.
+   * @param {Array} [options.exclude] - The columns to exclude from the result.
+   * @param {Array} [options.attributes] - The columns to include in the result.
+   * @param {number} [options.limit] - The maximum number of records to fetch.
+   * @param {number} [options.offset] - The number of records to skip.
+   * @param {string} [options.order] - The column to order the results by.
+   * @param {string} [options.group] - The column to group the results by.
    * @example var products = await Product.findAll();
    * @example var products = await Product.findAll({ where: { price: { gt: 100 } } });
    * @example var products = await Product.findAll({ where: { price: { gt: 100, lt: 200 } } });
@@ -309,18 +311,21 @@ declare module 'mappifysql' {
    * @example var products = await Product.findAll({ group: 'category' });
    * @returns {Promise<Array<Model>>} An array of instances.
    */
-    static findAll(options?: object): Promise<Array<MappifyModel>>;
+    static findAll(options?: { where?: object, exclude?: Array<string>, attributes?: Array<string>, limit?: number, offset?: number, order?: string, group?: string }): Promise<Array<MappifyModel>>;
 
 
     /**
    * This static method finds a record based on the provided options, or creates a new record if no record is found.
    * @param {object} options - The options for the query.
+   * @param {object} options.where - The WHERE clause for the query.
+   * @param {Array} [options.exclude] - The columns to exclude from the result.
+   * @param {Array} [options.attributes] - The columns to include in the result.
    * @param {object} data - The data to create the record with.
    * @example var user = await User.findOrCreate({ where: { email: 'user@example.com' } }, { name: 'John Doe', password: 'password' });
    * @returns {Promise<{ instance: Model, created: boolean }>} An object containing the instance and a boolean indicating if the record was created.
    * @throws {Error} Throws an error if the where clause is not provided.
    */
-    static findOrCreate(options: object, data: object): Promise<{ instance: MappifyModel, created: boolean }>;
+    static findOrCreate(options: { where: object, exclude?: Array<string>, attributes?: Array<string> }, data: object): Promise<{ instance: MappifyModel, created: boolean }>;
 
 
     /**
@@ -338,26 +343,25 @@ declare module 'mappifysql' {
    * This static method updates a record in the table based on the provided options.
    * @param {object} options - The options for the query.
    * @param {object} options.where - The WHERE clause for the query.
-   * @param {object} data - The new data for the record.
    * @example await Product.findOneAndDelete({ where: { name: 'Product 1' } });
-   * @returns {Promise<Model|null>} The updated instance or null if no record was found.
+   * @returns {Promise<MappifyModel|null>} The updated instance or null if no record was found.
    * @throws {Error} Throws an error if the where clause is not provided or if no record is found.
    */
-    static findOneAndDelete(options: object): Promise<MappifyModel>;
+    static findOneAndDelete(options: { where: object }): Promise<MappifyModel>;
 
 
-/**
- * This static method updates a record in the table based on the provided options.
- * @param options The options for the query.
- * @param options.where The WHERE clause for the query.
- * @param options.attributes The columns to include in the result.
- * @param options.exclude The columns to exclude from the result.
- * @param data The new data for the record.
- * @example await Product.findOneAndUpdate({ where: { id: 1 } }, { price: 200 });
- * @returns The updated instance or null if no record was found.
- * @throws Throws an error if the where clause is not provided or if no record is found.
- */
-static findOneAndUpdate(options: { where?: object, attributes?: object, exclude?: object }, data: object): Promise<Model | null>;
+    /**
+     * This static method updates a record in the table based on the provided options.
+      * @param {object} options - The options for the query.
+      * @param {object} options.where - The WHERE clause for the query.
+      * @param {Array} [options.exclude] - The columns to exclude from the result.
+      * @param {Array} [options.attributes] - The columns to include in the result.
+     * @param data The new data for the record.
+     * @example await Product.findOneAndUpdate({ where: { id: 1 } }, { price: 200 });
+     * @returns The updated instance or null if no record was found.
+     * @throws Throws an error if the where clause is not provided or if no record is found.
+     */
+    static findOneAndUpdate(options: { where: object, attributes?: object, exclude?: object }, data: object): Promise<MappifyModel | null>;
 
 
     /**
@@ -371,113 +375,141 @@ static findOneAndUpdate(options: { where?: object, attributes?: object, exclude?
     static findByIdAndUpdate(id: number, data: object): Promise<MappifyModel | null>;
   }
 
-
-
   /**
- * Database class for managing MySQL connections.
- * @example const db = new Database();
- * db.createConnection().then((connection) => {
- * console.log('Connection created successfully');
- * } catch (err) {
- * console.error(err);
- * }
- */
-  export class Database {
-
-
-
-    /**
-    * Creates a new MySQL connection using the configuration.
-    * @example const db = new Database();
-    * db.createConnection().then((connection) => {
-    *  console.log('Connection created successfully');
-    * } catch (err) {
-    * console.error(err);
-    * }
-    * @returns {Promise} A promise that resolves to the connection if successful, otherwise rejects with an error.
-    */
-    createConnection(): Promise<any>;
-
-    /**
-     * Creates a new MySQL connection pool using the configuration.
-     * This method should be used when multiple connections are required.
-     * @example const db = new Database();
-     * db.createPool().then((pool) => {
-     *   console.log('Pool created successfully');
-     * } catch (err) {
-     *  console.error(err);
-     * }
-     * @returns {Promise} A promise that resolves to the connection pool if successful, otherwise rejects with an error.
-     */
-    createPool(): Promise<any>;
-
-    /**
-   * Gets a promisified version of the query method from the connection.
-   * This method should be used to query the database.
-   * @example const db = new Database();
-   * const query = db.getQuery();
+   * Executes a MySQL query.
+   * @example const { query } = require('mappifysql');
    * query('SELECT * FROM users').then((results) => {
-   *  console.log(results);
+   * console.log(results);
    * } catch (err) {
    * console.error(err);
    * }
-   * @returns {Function} The promisified query method.
+   * @param {string} sql - The SQL query string.
+   * @param {any} [values] - Optional values for parameterized SQL queries.
+   * @returns {Promise<any>} The results of the query.
    */
-    getQuery(): Function;
+  export function query(sql: string, values?: any): Promise<any>;
 
-    /**
-     * Gets the current connection.
-     * @example const db = new Database();
-     * db.createConnection().then(() => {
-     * }).catch((err) => {
-     * console.log(err);
-     * });
-     * const connection = db.getConnection();
-     * @returns {Connection} The current connection
+  /**
+  * Begins a new transaction.
+  * @example const { beginTransaction } = require('mappifysql');
+  * await beginTransaction();
+  * @returns {Promise<void>}
+  */
+ export function beginTransaction(): Promise<void>;
+ 
+ /**
+  * Commits the current transaction.
+  * @example const { commit } = require('mappifysql');
+  * await commit();
+  * @returns {Promise<void>}
+  */
+  export function commit(): Promise<void>;
+ 
+ /**
+  * Rolls back the current transaction.
+  * @example const { rollback } = require('mappifysql');
+  * await rollback();
+  * @returns {Promise<void>}
+  */
+  export function rollback(): Promise<void>;
+
+  /**
+   * The current MySQL connection.
+   * @example const { connection } = require('mappifysql');
+   * connection.query('SELECT * FROM users').then((results) => {
+   * console.log(results);
+   * } catch (err) {
+   * console.error(err);
+   * }
    */
-    getConnection(): Connection;
+  export const connection: Connection;
 
-  }
   interface Connection {
     /**
- * Begins a transaction.
- * @param {function} [callback] - Optional callback function.
- */
+     * Begins a transaction. This allows you to execute multiple queries as part of a single transaction.
+     * @param {function} [callback] - Optional callback function.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.beginTransaction((err, connection) => {
+     * if (err) {
+     * console.error(err);
+     * }
+     * });0.4
+     */
     beginTransaction(callback?: (err: any) => void): void;
 
     /**
-     * Commits the current transaction.
+     * Commits the current transaction. This saves all changes made since the last call to beginTransaction.
      * @param {function} [callback] - Optional callback function.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.commit((err) => {
+     * if (err) {
+     * console.error(err);
+     * }
      */
     commit(callback?: (err: any) => void): void;
 
     /**
-     * Rolls back the current transaction.
+     * Rolls back the current transaction. This undoes all changes made since the last call to beginTransaction.
      * @param {function} [callback] - Optional callback function.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.rollback((err) => {
+     * if (err) {
+     * console.error(err);
+     * }
+     * });
+     * @example connection.rollback();
      */
     rollback(callback?: (err: any) => void): void;
 
     /**
      * Sends a SQL query to the database.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.query('SELECT * FROM users', (err, results) => {
+     * if (err) {
+     * console.error(err);
+     * }
+     * @type {Function}
      * @param {string} sql - The SQL query string.
      * @param {any} [values] - Optional values for parameterized SQL queries.
      * @param {function} [callback] - Optional callback function.
+     * @returns {void}
      */
     query(sql: string, values?: any, callback?: (error: any, results: any, fields: any) => void): void;
 
     /**
-     * Ends the connection.
+     * Ends the connection. This allows the connection to be closed and removed from the pool.
      * @param {function} [callback] - Optional callback function.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.end((err) => {
+     * if (err) {
+     * console.error(err);
+     * }
+     * });
+     * @example connection.end();
+     * @returns {void}
      */
     end(callback?: (err: any) => void): void;
 
     /**
-     * Destroys the connection.
+     * Destroys the connection. This allows the connection to be closed and removed from the pool.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.destroy();
+     * @returns {void}
      */
     destroy(): void;
 
     /**
-     * Pauses the connection.
+     * Pauses the connection. This allows the connection to be temporarily disabled.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.pause();
+     * @returns {void}
      */
     pause(): void;
 
@@ -486,33 +518,7 @@ static findOneAndUpdate(options: { where?: object, attributes?: object, exclude?
      */
     resume(): void;
 
-    /**
-     * Escapes a value for SQL.
-     * @param {any} value - The value to escape.
-     * @returns {string} The escaped value.
-     */
-    escape(value: any): string;
 
-    /**
-     * Escapes an identifier for SQL.
-     * @param {any} value - The identifier to escape.
-     * @returns {string} The escaped identifier.
-     */
-    escapeId(value: any): string;
-
-    /**
-     * Formats a SQL query string.
-     * @param {string} sql - The SQL query string.
-     * @param {any} [values] - Optional values for parameterized SQL queries.
-     * @returns {string} The formatted SQL query string.
-     */
-    format(sql: string, values?: any): string;
-
-    /**
-     * Pings the server.
-     * @param {function} [callback] - Optional callback function.
-     */
-    ping(callback?: (err: any) => void): void;
 
     /**
      * Changes the user for the current connection.
@@ -520,5 +526,217 @@ static findOneAndUpdate(options: { where?: object, attributes?: object, exclude?
      * @param {function} [callback] - Optional callback function.
      */
     changeUser(options: any, callback?: (err: any) => void): void;
+
+    /**
+     * Executes a SQL query and returns a promise.
+     * @param {string} sql - The SQL query string.
+     * @param {Function} [callback] - Optional callback function.
+     * @returns {Promise<any>} The results of the query.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * const results = await conn.execute('SELECT * FROM users');
+     * console.log(results);
+     */
+    execute(sql: string, callback?: any): Promise<any>;
+
+    /**
+     * Synchronously calls each of the listeners registered for the event named eventName, in the order they were registered, passing the supplied arguments to each.
+    
+    *Returns `true` if the event had listeners, `false` otherwise.
+     */
+    emit(event: string | symbol, ...args: any[]): boolean;
+
+    
+    /**
+    * Adds a **one-time** `listener` function for the event named `eventName`. The
+    * next time `eventName` is triggered, this listener is removed and then invoked.
+    *
+    * @example const { connection } = require('mappifysql');
+    * const conn = await connection;
+    * conn.once('connection', (stream) => {
+    *   console.log('Ah, we have our first user!');
+    * });
+    *
+    * Returns a reference to the `EventEmitter`, so that calls can be chained.
+    * @returns {Function} The promisified query method.
+    * @param {string | symbol} event The name of the event.
+    * @param {Function} listener The callback function.
+    */
+    once(event: string | symbol, listener: (...args: any[]) => void): this;
+
+    /**
+     * Adds the `listener` function to the end of the listeners array for the event
+     * named `eventName`. No checks are made to see if the `listener` has already
+     * been added. Multiple calls passing the same combination of `eventName` and
+     * `listener` will result in the `listener` being added, and called, multiple times.
+     *
+     *
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.on('connection', (stream) => {
+     *   console.log('someone connected!');
+     * });
+     *
+     * Returns a reference to the `EventEmitter`, so that calls can be chained.
+     * @returns {Function} The promisified query method.
+     * @param {string | symbol} event The name of the event.
+     * @param {Function} listener The callback function.
+    */
+    on(event: string | symbol, listener: (...args: any[]) => void): this;
+
+
+
+    /**
+     * unprepares a previously prepared statement.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.unprepare('SELECT * FROM users WHERE id = ?', (err) => {
+     * if (err) {
+     * console.error(err);
+     * }
+     * });
+     * @param {string} sql - The SQL query string.
+     * @returns {void}
+     */
+    unprepare(sql: string): PrepareStatementInfo
+
+    /**
+     * Prepares a SQL statement.
+     * @example const { connection } = require('mappifysql');
+     * const statement = connection.prepare('SELECT * FROM users WHERE id = ?');
+     * @param {string} sql - The SQL query string.
+     * @param {function} [callback] - Optional callback function.
+     * @returns {Prepare} The prepared statement.
+     * @throws {Error} Throws an error if the SQL statement is not provided.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * const statement = con.prepare('SELECT * FROM users WHERE id = ?');
+     * console.log(statement);
+     * @example const { connection } = require('mappifysql');
+     */
+    prepare(sql: string, callback?: (err: any, statement: PrepareStatementInfo) => void): Prepare;
+
+    /**
+     * Escapes an identifier for SQL.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * const identifier = conn.escapeId('id');
+     * console.log(identifier);
+     * @param {string} value - The identifier to escape.
+     * @returns {string} The escaped identifier.
+     * @example const { connection } = require('mappifysql');
+     * const identifier = connection.escapeId('id');
+     * console.log(identifier);
+     */
+    escapeId(value: string): string;
+
+    /**
+     * Escapes a value for SQL.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * const value = conn.escape('John Doe');
+     * console.log(value);
+     * @param {any} value - The value to escape.
+     * @returns {string} 
+     */
+    escape(value: any): string;
+
+    /**
+     * Formats a SQL query string. This is used to escape values for SQL.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * const sql = conn.format('SELECT * FROM users WHERE id = ?', [1]);
+     * console.log(sql);
+     * @param {string} sql - The SQL query string.
+     * @param {any | any[] | { [param: string]: any }} values - The values for the query.
+     * @returns {string} The formatted SQL query string.
+     */
+    format(sql: string, values: any): string;
+
+    /**
+     * Pings the server. This is used to check if the server is still connected.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.ping((err) => {
+     * if (err) {
+     * console.error(err);
+     * }
+     * });
+     * @param {function} [callback] - Optional callback function.
+     */
+    ping(callback?: (err: any) => void): void;
+
+
+    /**
+     * The server handshake. This is used to establish a connection to the server.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.serverHandshake((err) => {
+     * if (err) {
+     * console.error(err);
+     * }
+     * });
+     * @param {any} args - The arguments for the handshake.
+     */
+    serverHandshake(args: any): any;
+
+
+    /**
+     * Returns a promise that resolves to the connection. This allows you to use async/await with the connection.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * const promise = conn.promise();
+     * const results = await promise.query('SELECT * FROM users');
+     * console.log(results);
+     * @param {PromiseConstructor} [promiseImpl] - Optional values for parameterized SQL queries.
+     * @returns {Promise<any>} The results of the query.
+     */
+    promise(promiseImpl?: PromiseConstructor): Pool;
+
+    // authorized 
+    /**
+     * The authorized status of the connection.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * const authorized = conn.authorized;
+     * if (authorized) {
+     * console.log('Authorized');
+     * } else {
+     * console.log('Not authorized');
+     * }
+     * @returns {boolean} The authorized status.
+     */
+    authorized: boolean;
+    
+
+    /**
+     * The thread ID of the connection.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * const threadId = conn.threadId;
+     * console.log(threadId);
+     * @returns {number} The thread ID.
+     */
+    threadId: number;
+
+    /**
+     * The sequence ID of the connection.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * const sequenceId = conn.sequenceId;
+     * console.log(sequenceId);
+     * @returns {number} The sequence ID.
+     */
+    sequenceId: number;
+
+    /**
+     * Releases the connection back to the pool. This allows the connection to be reused.
+     * @note This method is only available when using a pool.
+     * @example const { connection } = require('mappifysql');
+     * const conn = await connection;
+     * conn.release();
+     * @returns {void}
+     */
+    release(): void;
   }
 }

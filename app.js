@@ -23,15 +23,39 @@ module.exports.default = mappifysql;
 module.exports.mappifysql = mappifysql;
 
 
-// Re-export for ESM support
-/**
- * Exports the Database class from the mappifysql module.
- * @type {Class}
+/** 
+ * Exports the query function from the mappifysql module.
+ * @type {Function}
  */
-module.exports.Database = mappifysql.Database;
+module.exports.query = mappifysql.query;
+
+/**
+ * Exports the connection object from the mappifysql module.
+ * @type {Object}
+ */
+module.exports.connection = mappifysql.connection;
+
+/**
+ * Exports the beginTransaction function from the mappifysql module.
+ * @type {Function}
+ */
+module.exports.beginTransaction = mappifysql.beginTransaction;
+
+/**
+ * Exports the commit function from the mappifysql module.
+ * @type {Function}
+ */
+module.exports.commit = mappifysql.commit;
+
+/**
+* Exports the rollback function from the mappifysql module.
+* @type {Function}
+*/
+module.exports.rollback = mappifysql.rollback;
 
 /**
  * Exports the MappifyModel class from the mappifysql module.
  * @type {Class}
  */
 module.exports.MappifyModel = mappifysql.MappifyModel;
+
