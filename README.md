@@ -345,7 +345,7 @@ let fetchAll = async () => {
 
 let addData = async () => {
     let newUser = new User({ name: 'John Doe', email: 'john.doe@example.com' });
-    User.save().then(() => {
+    newUser.save().then(() => {
         console.log('New record inserted successfully');
     }).catch((err) => {
         console.error(err);
@@ -365,6 +365,15 @@ let updateData = async () => {
     }).catch((err) => {
         console.error(err);
     });
+};
+
+let updateData = async () => {
+    let user = await User.findOneAndUpdate({ where: { email: 'user@example.com' } }, { name: 'Jane Doe', email: 'user2@example.com' });
+    if (user) {
+        console.log('Record updated successfully');
+    } else {
+        console.log('Record not found');
+    }
 };
 
 // Example: Delete a record
@@ -394,12 +403,14 @@ This file contains a base model class with methods for interacting with a databa
 ### MappifySQL save Method
 
 This method inserts a new record into the database. It uses the properties of the instance to determine the column names and values.
+It returns a promise that resolves with the id of the newly inserted record.
 
 Example:
 ```javascript
+// you can use also Async/Await
 let user = new User({ name: 'John Doe', email: 'joh.doe@example.com' });
-user.save().then(() => {
-    console.log('New record inserted successfully');
+user.save().then((id) => {
+    console.log('New record inserted successfully', id);
 }).catch((err) => {
     console.error(err);
 });
@@ -410,9 +421,11 @@ user.save().then(() => {
 ### MappifySQL Update Method
 
 This method updates the record associated with the instance in the database. It uses the properties of the instance to determine the column names and values.
+It returns a promise that resolves with a boolean value indicating whether the record was updated successfully.
 
 Example:
 ```javascript
+// you can use also Async/Await
 User.findById(1).then((record) => {
     record.setProperties({ name: 'Jane Doe', email: 'janedoe@example.com' });
     record.update().then(() => {
@@ -434,6 +447,7 @@ This method deletes the record associated with the instance from the database.
 
 Example:
 ```javascript
+// you can use also Async/Await
 User.findById(1).then((record) => {
     record.delete().then(() => {
         console.log('Record deleted successfully');
@@ -453,6 +467,7 @@ This method fetches all the records associated with the instance from the databa
 
 Example:
 ```javascript
+// you can use also Async/Await
 User.fetch().then((records) => {
     console.log('Fetched records:', records);
 }).catch((err) => {
@@ -757,7 +772,7 @@ const products = await Product.findAll({attributes: ['id', 'name', 'price'], whe
 
 ### MappifySQL findOrCreate Method
 
-This method finds one record in the database that matches the specified conditions, or creates a new record if no matching record is found. This function returns a object with two properties: `record` and `created`. The `record` property contains the record found or created, and the `created` property is a boolean value indicating whether the record was created or not. This function can be useful implementing a third-party login system where you want to find a user by their email or create a new user if they don't exist.
+This method finds one record in the database that matches the specified conditions, or creates a new record if no matching record is found. This function returns a object with two properties: `instance` and `created`. The `instance` property contains the record found or created, and the `created` property is a boolean value indicating whether the record was created or not. This function can be useful implementing a third-party login system where you want to find a user by their email or create a new user if they don't exist.
 
 **Parameters**:
 There are two parameters for this method:
@@ -771,26 +786,31 @@ There are two parameters for this method:
 Example:
 ```javascript
 // Find a user with the email and create a new user if not found
-let { record, created } = await User.findOrCreate({ where: { email: 'user@example.com' } }, { name: 'John Doe', picture: 'default.jpg', role: 'user' });
+let { instance, created } = await User.findOrCreate({ where: { email: 'user@example.com' } }, { name: 'John Doe', picture: 'default.jpg', role: 'user' });
 
 if (created) {
-    console.log('New user created:', record);
+    console.log('New user created:', instance);
 } else {
-    console.log('User found:', record);
+    console.log('User found:', instance);
 }
 
 // Find a user using operations
-let { record, created } = await User.findOrCreate({ where: { or: [{ email: 'user@example.com' }, { username: 'user' }] } }, { name: 'John Doe', picture: 'default.jpg', role: 'user' });
+let { instance, created } = await User.findOrCreate({ where: { or: [{ email: 'user@example.com' }, { username: 'user' }] } }, { name: 'John Doe', picture: 'default.jpg', role: 'user' });
 ```
 
 ### MappifySQL findByIdAndDelete Method
 
 The `findByIdAndDelete` method finds a single record in the database that matches the specified `id` and deletes it. The parameter is the id of the record to delete.
+It returns a promise that resolves with a boolean value indicating whether the record was deleted or null if the record was not found.
 
 Example:
 ```javascript
-User.findByIdAndDelete(1).then(() => {
-    console.log('Record deleted successfully');
+User.findByIdAndDelete(1).then((deleted) => {
+    if (deleted) {
+        console.log('Record deleted successfully');
+    } else {
+        console.log('Record not found');
+    }
 }).catch((err) => {
     console.error(err);
 });
@@ -798,7 +818,8 @@ User.findByIdAndDelete(1).then(() => {
 
 ### MappifySQL findOneAndDelete Method
 
-This method finds one record in the database that matches the specified conditions and deletes it.
+This method finds one record in the database that matches the specified conditions and deletes it. 
+It returns a promise that resolves with a boolean value indicating whether the record was deleted or null if the record was not found.
 
 **Parameters**:
 There are two parameters for this method:
@@ -807,8 +828,13 @@ There are two parameters for this method:
 
 Example:
 ```javascript
-User.findOneAndDelete({ where: { email: 'user@example.com' } }).then(() => {
-    console.log('Record deleted successfully');
+// you can also use Async/Await
+User.findOneAndDelete({ where: { email: 'user@example.com' } }).then((deleted) => {
+    if (deleted) {
+        console.log('Record deleted successfully');
+    } else {
+        console.log('Record not found');
+    }
 }).catch((err) => {
     console.error(err);
 });
@@ -817,7 +843,8 @@ User.findOneAndDelete({ where: { email: 'user@example.com' } }).then(() => {
 
 ### MappifySQL findOneAndUpdate Method
 
-This method finds one record in the database that matches the specified conditions and updates it. 
+This method finds one record in the database that matches the specified conditions and updates it.
+It returns a promise that resolves with the updated record or null if the record was not found.
 
 **Parameters**:
 There are two parameters for this method:
@@ -830,8 +857,13 @@ There are two parameters for this method:
 
 Example:
 ```javascript
-User.findOneAndUpdate({ where: { email: 'user@example.com' } }, { name: 'Jane Doe', picture: 'profile.jpg' }).then(() => {
-    console.log('Record updated successfully');
+// you can also use Async/Await
+User.findOneAndUpdate({ where: { email: 'user@example.com' } }, { name: 'Jane Doe', picture: 'profile.jpg' }).then((user) => {
+    if (user) {
+        console.log('Record updated successfully');
+    } else {
+        console.log('Record not found');
+    }
 }).catch((err) => {
     console.error(err);
 });
@@ -840,6 +872,7 @@ User.findOneAndUpdate({ where: { email: 'user@example.com' } }, { name: 'Jane Do
 ### MappifySQL findByIdAndUpdate Method`
 
 This method finds one record in the database with the specified id and updates it. 
+It returns a promise that resolves with the updated record or null if the record was not found.
 
 **Parameters**:
 There are two parameters for this method:
@@ -848,45 +881,17 @@ There are two parameters for this method:
 
 Example:
 ```javascript
-User.findByIdAndUpdate(1, { name: 'Jane Doe', picture: 'profile.jpg' }).then(() => {
-    console.log('Record updated successfully');
+// you can also use Async/Await
+User.findByIdAndUpdate(1, { name: 'Jane Doe', picture: 'profile.jpg' }).then((user) => {
+    if (user) {
+        console.log('Record updated successfully');
+    } else {
+        console.log('Record not found');
+    }
 }).catch((err) => {
     console.error(err);
 });
 ```
-
-<!-- ### Custom Queries
-
-You can execute custom SQL queries using the query method provided by MappifySQL. This method allows you to execute any SQL query and returns a promise that resolves with the result of the query.
-
-Example:
-```javascript
-const { connection, query } = require('mappifysql');
-
-let customQuery = async () => {
-    try {
-        let results = await query('SELECT * FROM users WHERE role = ?', ['admin']);
-        console.log('Fetched records:', results);
-    } catch (err) {
-        console.error(err);
-    }
-};
-
-// you can also use the connection object directly
-let customQuery = async () => {
-    try {
-        let results = await connection.query('SELECT * FROM products WHERE name LIKE ?', ['%apple%'], (err, results, fields) => {
-            if (err) {
-                throw err;
-            }
-            console.log('Fetched records:', results);
-        });
-    } catch (err) {
-        console.error(err);
-    }
-};
-
-``` -->
 
 
 ### Pagination

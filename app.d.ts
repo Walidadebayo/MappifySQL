@@ -239,7 +239,7 @@ declare module 'mappifysql' {
     /**
    * This method fetches all records from the database.
    * @example var products = await Product.fetch();
-   * @returns {Promise<Array<Model>>} An array of instances.
+   * @returns {Promise<Array<MappifyModel>>} An array of instances.
    */
     static fetch(): Promise<Array<MappifyModel>>;
 
@@ -265,7 +265,8 @@ declare module 'mappifysql' {
      * @example var product = await Product.findOne({ where: { not: { name: 'Product 1' } } });
      * @example var product = await Product.findOne({ where: { and: [{ name: 'Product 1' }, { price: 100 }] } });
      * @example var product = await Product.findOne({ where: { or: [{ name: 'Product 1' }, { price: 100 }] } });
-     * @returns {Promise<Object|null>} An instance of an array or null if no record was found.
+     * @returns {Promise<MappifyModel|null>} An instance of an array or null if no record was found.
+     * @throws {Error} Throws an error if the where clause is not provided.
      */
     static findOne(options: { where: object, exclude?: Array<string>, attributes?: Array<string> }): Promise<MappifyModel | null>;
 
@@ -275,7 +276,7 @@ declare module 'mappifysql' {
      * @param {number} id - The ID of the record to fetch.
      * @example var product = await Product.findById(1);
      * console.log(product);
-     * @returns {Promise<Object|null>} An instance of an array or null if no record was found.
+     * @returns {Promise<MappifyModel|null>} An instance of an array or null if no record was found.
      */
     static findById(id: number): Promise<MappifyModel | null>;
 
@@ -315,24 +316,24 @@ declare module 'mappifysql' {
 
 
     /**
-   * This static method finds a record based on the provided options, or creates a new record if no record is found.
-   * @param {object} options - The options for the query.
-   * @param {object} options.where - The WHERE clause for the query.
-   * @param {Array} [options.exclude] - The columns to exclude from the result.
-   * @param {Array} [options.attributes] - The columns to include in the result.
-   * @param {object} data - The data to create the record with.
-   * @example var user = await User.findOrCreate({ where: { email: 'user@example.com' } }, { name: 'John Doe', password: 'password' });
-   * @returns {Promise<{ instance: Model, created: boolean }>} An object containing the instance and a boolean indicating if the record was created.
-   * @throws {Error} Throws an error if the where clause is not provided.
-   */
-    static findOrCreate(options: { where: object, exclude?: Array<string>, attributes?: Array<string> }, data: object): Promise<{ instance: MappifyModel, created: boolean }>;
+     * This static method finds a record based on the provided options, or creates a new record if no record is found.
+     * @param {object} options - The options for the query.
+     * @param {object} options.where - The WHERE clause for the query.
+     * @param {Array} [options.exclude] - The columns to exclude from the result.
+     * @param {Array} [options.attributes] - The columns to include in the result.
+     * @param {object} defaults - The default values to create the record with.
+     * @example var user = await User.findOrCreate({ where: { email: 'user@example.com' } }, { name: 'John Doe', password: 'password' });
+     * @returns {Promise<{ instance: Model, created: boolean }>} An object containing the instance and a boolean indicating if the record was created.
+     * @throws {Error} Throws an error if the where clause is not provided.
+    */
+    static findOrCreate(options: { where: object, exclude?: Array<string>, attributes?: Array<string> }, defaults: object): Promise<{ instance: MappifyModel, created: boolean }>;
 
 
     /**
   * This static method deletes a record from the table based on its ID.
   * @param {number} id - The ID of the record to delete.
   * @example await User.findByIdAndDelete(1);
-  * @returns {Promise<boolean>} A promise that resolves to true if the record was deleted, otherwise false.
+  * @returns {Promise<boolean|null>} A promise that resolves to true if the record was deleted, otherwise null.
   * @throws {Error} Throws an error if the ID is not provided or if no record is found.
   * @example await User.findByIdAndDelete(1);
   */
@@ -344,23 +345,23 @@ declare module 'mappifysql' {
    * @param {object} options - The options for the query.
    * @param {object} options.where - The WHERE clause for the query.
    * @example await Product.findOneAndDelete({ where: { name: 'Product 1' } });
-   * @returns {Promise<MappifyModel|null>} The updated instance or null if no record was found.
+   * @returns {Promise<boolean|null>} A promise that resolves to true if the record was deleted, otherwise null.
    * @throws {Error} Throws an error if the where clause is not provided or if no record is found.
    */
     static findOneAndDelete(options: { where: object }): Promise<MappifyModel>;
 
 
     /**
-     * This static method updates a record in the table based on the provided options.
-      * @param {object} options - The options for the query.
-      * @param {object} options.where - The WHERE clause for the query.
-      * @param {Array} [options.exclude] - The columns to exclude from the result.
-      * @param {Array} [options.attributes] - The columns to include in the result.
-     * @param data The new data for the record.
-     * @example await Product.findOneAndUpdate({ where: { id: 1 } }, { price: 200 });
-     * @returns The updated instance or null if no record was found.
-     * @throws Throws an error if the where clause is not provided or if no record is found.
-     */
+    * This static method updates a record in the table based on the provided options.
+    * @param {object} options - The options for the query.
+    * @param {object} options.where - The WHERE clause for the query.
+    * @param {Array} [options.exclude] - The columns to exclude from the result.
+    * @param {Array} [options.attributes] - The columns to include in the result.
+    * @param data The new data for the record.
+    * @example await Product.findOneAndUpdate({ where: { id: 1 } }, { price: 200 });
+    * @returns {Promise<MappifyModel|null>} The updated instance or null if no record was found.
+    * @throws {Error} Throws an error if the where clause is not provided or if no record is found.
+  */
     static findOneAndUpdate(options: { where: object, attributes?: object, exclude?: object }, data: object): Promise<MappifyModel | null>;
 
 
